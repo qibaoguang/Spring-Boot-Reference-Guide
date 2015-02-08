@@ -911,19 +911,171 @@ spring.jpa.hibernate.ddl-auto=create-drop
 默认情况下，DDL执行（或验证）被延迟到ApplicationContext启动。这也有一个spring.jpa.generate-ddl标识，如果Hibernate自动配置被激活，那该标识就不会被使用，因为ddl-auto设置粒度更细。
 
 ### 使用NoSQL技术
+Spring Data提供其他项目，用来帮你使用各种各样的NoSQL技术，包括[MongoDB](http://projects.spring.io/spring-data-mongodb/), [Neo4J](http://projects.spring.io/spring-data-neo4j/), [Elasticsearch](https://github.com/spring-projects/spring-data-elasticsearch/), [Solr](http://projects.spring.io/spring-data-solr/), [Redis](http://projects.spring.io/spring-data-redis/), [Gemfire](http://projects.spring.io/spring-data-gemfire/), [Couchbase](http://projects.spring.io/spring-data-couchbase/)和[Cassandra](http://projects.spring.io/spring-data-cassandra/)。Spring Boot为Redis, MongoDB, Elasticsearch, Solr和Gemfire提供自动配置。你可以充分利用其他项目，但你需要自己配置它们。具体查看[projects.spring.io/spring-data.](http://projects.spring.io/spring-data/)中合适的参考文档。
+
 * Redis
-  1. 连接Redis
+
+[Redis](http://redis.io/)是一个缓存，消息中间件及具有丰富特性的键值存储系统。Spring Boot为[Jedis](https://github.com/xetorthio/jedis/)客户端库和由[Spring Data Redis](https://github.com/spring-projects/spring-data-redis)提供的基于Jedis客户端的抽象提供自动配置。`spring-boot-starter-redis`'Starter POM'为收集依赖提供一种便利的方式。
+
+1. 连接Redis
+
+你可以注入一个自动配置的RedisConnectionFactory，StringRedisTemplate或普通的跟其他Spring Bean相同的RedisTemplate实例。默认情况下，这个实例将尝试使用localhost:6379连接Redis服务器。
+```java
+@Component
+public class MyBean {
+
+    private StringRedisTemplate template;
+
+    @Autowired
+    public MyBean(StringRedisTemplate template) {
+        this.template = template;
+    }
+    // ...
+}
+```
+如果你添加一个你自己的任何自动配置类型的@Bean，它将替换默认的（除了RedisTemplate的情况，它是根据bean的名称'redisTemplate'而不是它的类型进行排除的）。如果在classpath路径下存在commons-pool2，默认你会获得一个连接池工厂。
+
 * MongoDB
-  1. 连接MongoDB数据库
-  2. MongoDBTemplate
-  3. Spring Data MongoDB仓库
+
+[MongoDB](http://www.mongodb.com/)是一个开源的NoSQL文档数据库，它使用一个JSON格式的模式（schema）替换了传统的基于表的关系数据。Spring Boot为使用MongoDB提供了很多便利，包括`spring-boot-starter-data-mongodb`'Starter POM'。
+
+**1. 连接MongoDB数据库**
+
+你可以注入一个自动配置的`org.springframework.data.mongodb.MongoDbFactory`来访问Mongo数据库。默认情况下，该实例将尝试使用URL：`mongodb://localhost/test`连接一个MongoDB服务器。
+```java
+import org.springframework.data.mongodb.MongoDbFactory;
+import import com.mongodb.DB;
+
+@Component
+public class MyBean {
+
+    private final MongoDbFactory mongo;
+
+    @Autowired
+    public MyBean(MongoDbFactory mongo) {
+        this.mongo = mongo;
+    }
+
+    // ...
+    public void example() {
+        DB db = mongo.getDb();
+        // ...
+    }
+}
+```
+你可以通过设置`spring.data.mongodb.uri`来改变该url，或指定一个host/port。比如，你可能会在你的application.properties中设置如下的属性：
+```java
+spring.data.mongodb.host=mongoserver
+spring.data.mongodb.port=27017
+```
+**注**：如果没有指定`spring.data.mongodb.port`，那将使用默认的端口27017。你可以简单的从上面的示例中删除这一行。如果不使用Spring Data Mongo，你可以注入com.mongodb.Mongo beans而不是使用MongoDbFactory。
+
+如果想全面控制MongoDB连接的建立，你也可以声明自己的MongoDbFactory或Mongo，@Beans，
+
+**2. MongoDBTemplate**
+
+Spring Data Mongo提供了一个[MongoTemplate](http://docs.spring.io/spring-data/mongodb/docs/current/api/org/springframework/data/mongodb/core/MongoTemplate.html)类，它的设计和Spring的JdbcTemplate很相似。正如JdbcTemplate一样，Spring Boot会为你自动配置一个bean，你只需简单的注入它即可：
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyBean {
+
+    private final MongoTemplate mongoTemplate;
+
+    @Autowired
+    public MyBean(MongoTemplate mongoTemplate) {
+        this.mongoTemplate = mongoTemplate;
+    }
+    // ...
+}
+```
+具体参考MongoOperations Javadoc。
+
+**3. Spring Data MongoDB仓库**
+
+Spring Data的仓库包括对MongoDB的支持。正如上面讨论的JPA仓库，基本的原则是查询会自动基于你的方法名创建。
+
+实际上，不管是Spring Data JPA还是Spring Data MongoDB都共享相同的基础设施。所以你可以使用上面的JPA示例，并假设那个City现在是一个Mongo数据类而不是JPA　@Entity，它将以同样的方式工作。
+```java
+package com.example.myapp.domain;
+
+import org.springframework.data.domain.*;
+import org.springframework.data.repository.*;
+
+public interface CityRepository extends Repository<City, Long> {
+
+    Page<City> findAll(Pageable pageable);
+
+    City findByNameAndCountryAllIgnoringCase(String name, String country);
+
+}
+```
 * Gemfire
+
+[Spring Data Gemfire](https://github.com/spring-projects/spring-data-gemfire)为使用[Pivotal Gemfire](http://www.pivotal.io/big-data/pivotal-gemfire#details)数据管理平台提供了方便的，Spring友好的工具。Spring Boot提供了一个用于聚集依赖的`spring-boot-starter-data-gemfire`'Starter POM'。目前不支持Gemfire的自动配置，但你可以使用一个[单一的注解](https://github.com/spring-projects/spring-data-gemfire/blob/master/src/main/java/org/springframework/data/gemfire/repository/config/EnableGemfireRepositories.java)使Spring Data仓库支持它。
+
 * Solr
-  1. 连接Solr
-  2. Spring Data Solr仓库 
+
+[Apache Solr](http://lucene.apache.org/solr/)是一个搜索引擎。Spring Boot为solr客户端库及[Spring Data Solr](https://github.com/spring-projects/spring-data-solr)提供的基于solr客户端库的抽象提供了基本的配置。Spring Boot提供了一个用于聚集依赖的`spring-boot-starter-data-solr`'Starter POM'。
+ 
+**1. 连接Solr**
+
+你可以像其他Spring beans一样注入一个自动配置的SolrServer实例。默认情况下，该实例将尝试使用`localhost:8983/solr`连接一个服务器。
+```java
+@Component
+public class MyBean {
+
+    private SolrServer solr;
+
+    @Autowired
+    public MyBean(SolrServer solr) {
+        this.solr = solr;
+    }
+    // ...
+}
+```
+如果你添加一个自己的SolrServer类型的@Bean，它将会替换默认的。
+
+**2. Spring Data Solr仓库**
+
+Spring Data的仓库包括了对Apache Solr的支持。正如上面讨论的JPA仓库，基本的原则是查询会自动基于你的方法名创建。
+
+实际上，不管是Spring Data JPA还是Spring Data Solr都共享相同的基础设施。所以你可以使用上面的JPA示例，并假设那个City现在是一个@SolrDocument类而不是JPA　@Entity，它将以同样的方式工作。
+
+**注**：具体参考[Spring Data Solr文档](http://projects.spring.io/spring-data-solr/)。
+
 * Elasticsearch
-  1. 连接Elasticsearch
-  2. Spring Data Elasticseach仓库
+
+[Elastic Search](http://www.elasticsearch.org/)是一个开源的，分布式，实时搜索和分析引擎。Spring Boot为Elasticsearch及[Spring Data Elasticsearch](https://github.com/spring-projects/spring-data-elasticsearch)提供的基于它的抽象提供了基本的配置。Spring Boot提供了一个用于聚集依赖的`spring-boot-starter-data-elasticsearch`'Starter POM'。
+  
+**1. 连接Elasticsearch**
+
+你可以像其他Spring beans那样注入一个自动配置的ElasticsearchTemplate或Elasticsearch客户端实例。默认情况下，该实例将尝试连接到一个本地内存服务器（在Elasticsearch项目中的一个NodeClient），但你可以通过设置`spring.data.elasticsearch.clusterNodes`为一个以逗号分割的host:port列表来将其切换到一个远程服务器（比如，TransportClient）。
+```java
+@Component
+public class MyBean {
+
+    private ElasticsearchTemplate template;
+
+    @Autowired
+    public MyBean(ElasticsearchTemplate template) {
+        this.template = template;
+    }
+    // ...
+}
+```
+如果你添加一个你自己的ElasticsearchTemplate类型的@Bean，它将替换默认的。
+
+**2. Spring Data Elasticseach仓库**
+
+Spring Data的仓库包括了对Elasticsearch的支持。正如上面讨论的JPA仓库，基本的原则是查询会自动基于你的方法名创建。
+
+实际上，不管是Spring Data JPA还是Spring Data　Elasticsearch都共享相同的基础设施。所以你可以使用上面的JPA示例，并假设那个City现在是一个Elasticsearch @Document类而不是JPA　@Entity，它将以同样的方式工作。
+
+**注**：具体参考[Spring Data Elasticsearch文档](http://docs.spring.io/spring-data/elasticsearch/docs/)。
   
 ### 消息
 * JMS
