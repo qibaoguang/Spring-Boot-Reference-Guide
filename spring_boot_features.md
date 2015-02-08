@@ -944,7 +944,7 @@ public class MyBean {
 你可以注入一个自动配置的`org.springframework.data.mongodb.MongoDbFactory`来访问Mongo数据库。默认情况下，该实例将尝试使用URL：`mongodb://localhost/test`连接一个MongoDB服务器。
 ```java
 import org.springframework.data.mongodb.MongoDbFactory;
-import import com.mongodb.DB;
+import com.mongodb.DB;
 
 @Component
 public class MyBean {
