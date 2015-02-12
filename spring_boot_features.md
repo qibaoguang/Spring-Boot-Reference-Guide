@@ -970,7 +970,7 @@ spring.data.mongodb.port=27017
 ```
 **注**：如果没有指定`spring.data.mongodb.port`，那将使用默认的端口27017。你可以简单的从上面的示例中删除这一行。如果不使用Spring Data Mongo，你可以注入com.mongodb.Mongo beans而不是使用MongoDbFactory。
 
-如果想全面控制MongoDB连接的建立，你也可以声明自己的MongoDbFactory或Mongo，@Beans，
+如果想全面控制MongoDB连接的建立，你也可以声明自己的MongoDbFactory或Mongo，@Beans。
 
 **2. MongoDBTemplate**
 
