@@ -1083,11 +1083,11 @@ Spring Framework框架为集成消息系统提供了扩展（extensive）支持�
 
 * JMS
 
-javax.jms.ConnectionFactory接口提供了一个标准的用于创建一个javax.jms.Connection的方法，javax.jms.Connection用于和JMS broker。尽管为了使用JMS，Spring需要一个ConnectionFactory，但通常你不需要直接使用它，而是依赖于上层消息抽象（具体参考Spring框架的[相关章节](http://docs.spring.io/spring/docs/4.1.4.RELEASE/spring-framework-reference/htmlsingle/#jms)）。Spring Boot也会自动配置发送和接收消息需要的设施（infrastructure）。
+javax.jms.ConnectionFactory接口提供了一个标准的用于创建一个javax.jms.Connection的方法，javax.jms.Connection用于和JMS代理（broker）交互。尽管为了使用JMS，Spring需要一个ConnectionFactory，但通常你不需要直接使用它，而是依赖于上层消息抽象（具体参考Spring框架的[相关章节](http://docs.spring.io/spring/docs/4.1.4.RELEASE/spring-framework-reference/htmlsingle/#jms)）。Spring Boot也会自动配置发送和接收消息需要的设施（infrastructure）。
  
  1. HornetQ支持
 
-如果发现HornetQ在classpath下能够使用，Spring Boot会自动配置ConnectionFactory。如果需要broker，将会开启一个内嵌的，已经自动配置好的broker（除非显式设置mode属性）。支持的modes有：embedded（显式声明使用一个内嵌的broker，如果该broker在classpath下不可用将导致一个错误），native（使用netty传输协议连接broker）。当后者被配置，Spring Boot配置一个连接到一个broker的ConnectionFactory，该broker运行在使用默认配置的本地机器上。
+如果在classpath下发现HornetQ，Spring Boot会自动配置ConnectionFactory。如果需要代理，将会开启一个内嵌的，已经自动配置好的代理（除非显式设置mode属性）。支持的modes有：embedded（显式声明使用一个内嵌的代理，如果该代理在classpath下不可用将导致一个错误），native（使用netty传输协议连接代理）。当后者被配置，Spring Boot配置一个连接到一个代理的ConnectionFactory，该代理运行在使用默认配置的本地机器上。
 
 **注**：如果使用spring-boot-starter-hornetq，连接到一个已存在的HornetQ实例所需的依赖都会被提供，同时还有用于集成JMS的Spring基础设施。将org.hornetq:hornetq-jms-server添加到你的应用中，你就可以使用embedded模式。
 
@@ -1097,13 +1097,13 @@ spring.hornetq.mode=native
 spring.hornetq.host=192.168.1.210
 spring.hornetq.port=9876
 ```
-当内嵌broker时，你可以选择是否启用持久化，并且列表中的目标都应该是可用的。这些可以通过一个以逗号分割的列表来指定一些默认的配置项，或定义org.hornetq.jms.server.config.JMSQueueConfiguration或org.hornetq.jms.server.config.TopicConfiguration类型的bean(s)来配置更高级的队列和主题。具体参考[HornetQProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/jms/hornetq/HornetQProperties.java)。
+当内嵌代理时，你可以选择是否启用持久化，并且列表中的目标都应该是可用的。这些可以通过一个以逗号分割的列表来指定一些默认的配置项，或定义org.hornetq.jms.server.config.JMSQueueConfiguration或org.hornetq.jms.server.config.TopicConfiguration类型的bean(s)来配置更高级的队列和主题。具体参考[HornetQProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/jms/hornetq/HornetQProperties.java)。
 
 没有涉及JNDI查找，目标是通过名字解析的，名字即可以使用HornetQ配置中的name属性，也可以是配置中提供的names。
 
   2. ActiveQ支持
 
-如果发现ActiveMQ在classpath下可用，Spring Boot会配置一个ConnectionFactory。如果需要broker，将会开启一个内嵌的，已经自动配置好的broker（只要配置中没有指定broker URL）。
+如果发现ActiveMQ在classpath下可用，Spring Boot会配置一个ConnectionFactory。如果需要代理，将会开启一个内嵌的，已经自动配置好的代理（只要配置中没有指定代理URL）。
 
 ActiveMQ配置是通过spring.activemq.*中的外部配置来控制的。例如，你可能在application.properties中声明下面的片段：
 ```java
@@ -1196,7 +1196,7 @@ Bitronix是另一个流行的开源JTA事务管理器实现。你可以使用`sp
 如果想使用一个non-XA的ConnectionFactory，你可以注入nonXaJmsConnectionFactory　bean而不是@Primary jmsConnectionFactory　bean。为了保持一致，jmsConnectionFactory　bean将以别名xaJmsConnectionFactor来被使用。
 
 示例如下：
-```
+```java
 // Inject the primary (XA aware) ConnectionFactory
 @Autowired
 private ConnectionFactory defaultConnectionFactory;
@@ -1229,7 +1229,7 @@ Spring Boot提供很多有用的测试应用的工具。spring-boot-starter-test
 
 如果使用spring-boot-starter-test ‘Starter POM’（在test作用域内），你将发现下列被提供的库：
 - Spring Test - 对Spring应用的集成测试支持
-- JUnit - de-facto标准，用于Java应用的单元测试。
+- JUnit - 事实上的（de-facto）标准，用于Java应用的单元测试。
 - Hamcrest - 一个匹配对象的库（也称为约束或前置条件），它允许assertThat等JUnit类型的断言。
 - Mockito - 一个Java模拟框架。
 
@@ -1310,9 +1310,9 @@ class ExampleSpec extends Specification {
 1. ConfigFileApplicationContextInitializer
 
 ConfigFileApplicationContextInitializer是一个ApplicationContextInitializer，可以用来测试加载Spring Boot的application.properties文件。当不需要使用@SpringApplicationConfiguration提供的全部特性时，你可以使用它。
+
 ```java
-@ContextConfiguration(classes = Config.class,
-initializers = ConfigFileApplicationContextInitializer.class)
+@ContextConfiguration(classes = Config.class,initializers = ConfigFileApplicationContextInitializer.class)
 ```　　
 2. EnvironmentTestUtils
 
