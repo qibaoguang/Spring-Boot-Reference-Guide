@@ -1280,24 +1280,136 @@ RestTemplate restTemplate = new TestRestTemplate();
 **注**：Spring测试框架在每次测试时会缓存应用上下文。因此，只要你的测试共享相同的配置，不管你实际运行多少测试，开启和停止服务器只会发生一次。
 
 你可以为@WebIntegrationTest添加环境变量属性来改变应用服务器端口号，比如@WebIntegrationTest("server.port:9000")。此外，你可以将server.port和management.port属性设置为０来让你的集成测试使用随机的端口号，例如：
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = MyApplication.class)
+@WebIntegrationTest({"server.port=0", "management.port=0"})
+public class SomeIntegrationTests {
+// ...
+}
+```
+可以查看[Section 64.4, “Discover the HTTP port at runtime”]()，它描述了如何在测试期间发现分配的实际端口。
 
+1. 使用Spock测试Spring Boot应用
 
-  1. 使用Spock测试Spring Boot应用
+如果期望使用Spock测试一个Spring Boot应用，你应该将Spock的spock-spring模块依赖添加到应用的构建中。spock-spring将Spring的测试框架集成到了Spock里。
+
+注意你不能使用上述提到的@SpringApplicationConfiguration注解，因为[Spock找不到@ContextConfiguration元注解](https://code.google.com/p/spock/issues/detail?id=349)。为了绕过该限制，你应该直接使用@ContextConfiguration注解，并使用Spring Boot特定的上下文加载器来配置它。
+```java
+@ContextConfiguration(loader = SpringApplicationContextLoader.class)
+class ExampleSpec extends Specification {
+// ...
+}
+```
+**注**：上面描述的注解在Spock中可以使用，比如，你可以使用@WebIntegrationTest注解你的Specification以满足测试需要。
+
 * 测试工具
-  1. ConfigFileApplicationContextInitializer
-  2. EnvironmentTestUtils
-  3. OutputCapture
-  4. TestRestTemplate
+
+打包进spring-boot的一些有用的测试工具类。
+
+1. ConfigFileApplicationContextInitializer
+
+ConfigFileApplicationContextInitializer是一个ApplicationContextInitializer，可以用来测试加载Spring Boot的application.properties文件。当不需要使用@SpringApplicationConfiguration提供的全部特性时，你可以使用它。
+```java
+@ContextConfiguration(classes = Config.class,
+initializers = ConfigFileApplicationContextInitializer.class)
+```　　
+2. EnvironmentTestUtils
+
+EnvironmentTestUtils允许你快速添加属性到一个ConfigurableEnvironment或ConfigurableApplicationContext。只需简单的使用key=value字符串调用它：
+```java
+EnvironmentTestUtils.addEnvironment(env, "org=Spring", "name=Boot");
+```
+3. OutputCapture
+
+OutputCapture是一个JUnit Rule，用于捕获System.out和System.err输出。只需简单的将捕获声明为一个@Rule，并使用toString()断言：
+```java
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.boot.test.OutputCapture;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
+public class MyTest {
+@Rule
+public OutputCapture capture = new OutputCapture();
+@Test
+public void testName() throws Exception {
+System.out.println("Hello World!");
+assertThat(capture.toString(), containsString("World"));
+}
+}
+```
+
+4. TestRestTemplate
+
+TestRestTemplate是一个方便进行集成测试的Spring RestTemplate子类。你会获取到一个普通的模板或一个发送基本HTTP认证（使用用户名和密码）的模板。在任何情况下，这些模板都表现出对测试友好：不允许重定向（这样你可以对响应地址进行断言），忽略cookies（这样模板就是无状态的），对于服务端错误不会抛出异常。推荐使用Apache HTTP Client(4.3.2或更好的版本)，但不强制这样做。如果在classpath下存在Apache HTTP Client，TestRestTemplate将以正确配置的client进行响应。
+```java
+public class MyTest {
+RestTemplate template = new TestRestTemplate();
+@Test
+public void testRequest() throws Exception {
+HttpHeaders headers = template.getForEntity("http://myhost.com", String.class).getHeaders();
+assertThat(headers.getLocation().toString(), containsString("myotherhost"));
+}
+}
+```
 
 ### 开发自动配置和使用条件
+
+如果你在一个开发者共享库的公司工作，或你在从事一个开源或商业型的库，你可能想要开发自己的auto-configuration。Auto-configuration类能够在外部的jars中绑定，并仍能被Spring Boot发现。
+
 * 理解auto-configured beans
+
+从底层来讲，auto-configured是使用标准的@Configuration实现的类，另外的@Conditional注解用来约束在什么情况下使用auto-configuration。通常auto-configuration类使用@ConditionalOnClass和@ConditionalOnMissingBean注解。这是为了确保只有在相关的类被发现，和你没有声明自己的@Configuration时才应用auto-configuration。
+
+你可以浏览spring-boot-autoconfigure的源码，查看我们提供的@Configuration类（查看META-INF/spring.factories文件）。
+
 * 定位auto-configuration候选者
+
+Spring Boot会检查你发布的jar中是否存在META-INF/spring.factories文件。该文件应该列出以EnableAutoConfiguration为key的配置类：
+```java
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.mycorp.libx.autoconfigure.LibXAutoConfiguration,\
+com.mycorp.libx.autoconfigure.LibXWebAutoConfiguration
+```
+如果配置需要应用特定的顺序，你可以使用[@AutoConfigureAfter](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/AutoConfigureAfter.java)或[@AutoConfigureBefore](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/AutoConfigureBefore.java)注解。例如，你想提供web-specific配置，你的类就需要应用在WebMvcAutoConfiguration后面。
+
 * Condition注解
-  1. Class条件
-  2. Bean条件
-  3. Property条件
-  4. Resource条件
-  5. Web Application条件
-  6. SpEL表达式条件
+
+你几乎总是需要在你的auto-configuration类里添加一个或更多的@Condition注解。@ConditionalOnMissingBean注解是一个常见的示例，它经常用于允许开发者覆盖auto-configuration，如果他们不喜欢你提供的默认行为。
+
+Spring Boot包含很多@Conditional注解，你可以在自己的代码中通过注解@Configuration类或单独的@Bean方法来重用它们。
+
+1. Class条件
+
+@ConditionalOnClass和@ConditionalOnMissingClass注解允许根据特定类是否出现来跳过配置。由于注解元数据是使用[ASM](http://asm.ow2.org/)来解析的，你实际上可以使用value属性来引用真正的类，即使该类可能实际上并没有出现在运行应用的classpath下。如果你倾向于使用一个String值来指定类名，你也可以使用name属性。
+
+2. Bean条件
+
+@ConditionalOnBean和@ConditionalOnMissingBean注解允许根据特定beans是否出现来跳过配置。你可以使用value属性来指定beans（by type），也可以使用name来指定beans（by name）。search属性允许你限制搜索beans时需要考虑的ApplicationContext的层次。
+
+**注**：当@Configuration类被解析时@Conditional注解会被处理。Auto-configure @Configuration总是最后被解析（在所有用户定义beans后面），然而，如果你将那些注解用到常规的@Configuration类，需要注意不能引用那些还没有创建好的bean定义。
+
+3. Property条件
+
+@ConditionalOnProperty注解允许根据一个Spring Environment属性来决定是否包含配置。可以使用prefix和name属性指定要检查的配置属性。默认情况下，任何存在的只要不是false的属性都会匹配。你也可以使用havingValue和matchIfMissing属性创建更高级的检测。
+
+4. Resource条件
+
+@ConditionalOnResource注解允许只有在特定资源出现时配置才会被包含。资源可以使用常见的Spring约定命名，例如file:/home/user/test.dat。
+
+5. Web Application条件
+
+@ConditionalOnWebApplication和@ConditionalOnNotWebApplication注解允许根据应用是否为一个'web应用'来决定是否包含配置。一个web应用是任何使用Spring WebApplicationContext，定义一个session作用域或有一个StandardServletEnvironment的应用。
+
+6. SpEL表达式条件
+
+@ConditionalOnExpression注解允许根据[SpEL表达式](http://docs.spring.io/spring/docs/4.1.4.RELEASE/spring-framework-reference/htmlsingle/#expressions)结果来跳过配置。
 
 ### WebSockets
+
+Spring Boot为内嵌的Tomcat(8和7)，Jetty 9和Undertow提供WebSockets自动配置。如果你正在将一个war包部署到一个单独的容器，Spring Boot会假设该容器会对它的WebSocket支持相关的配置负责。
+
+Spring框架提供[丰富的WebSocket支持](http://docs.spring.io/spring/docs/4.1.4.RELEASE/spring-framework-reference/htmlsingle/#websocket)，通过spring-boot-starter-websocket模块可以轻易获取到。
+
