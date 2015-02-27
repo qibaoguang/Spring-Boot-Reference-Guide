@@ -926,30 +926,210 @@ spring.jpa.hibernate.ddl-auto=create-drop
   2. Spring Data Elasticseach仓库
   
 ### 消息
+
+Spring Framework框架为集成消息系统提供了扩展（extensive）支持：从使用JmsTemplate简化JMS　API，到实现一个完整异步消息接收的底层设施。Spring AMQP提供一个相似的用于'高级消息队列协议'的特征集，并且Spring Boot也为RabbitTemplate和RabbitMQ提供了自动配置选项。Spring Websocket提供原生的STOMP消息支持，并且Spring Boot通过starters和一些自动配置也提供了对它的支持。
+
 * JMS
-  1. HornetQ支持
+
+javax.jms.ConnectionFactory接口提供了一个标准的用于创建一个javax.jms.Connection的方法，javax.jms.Connection用于和JMS broker。尽管为了使用JMS，Spring需要一个ConnectionFactory，但通常你不需要直接使用它，而是依赖于上层消息抽象（具体参考Spring框架的[相关章节](http://docs.spring.io/spring/docs/4.1.4.RELEASE/spring-framework-reference/htmlsingle/#jms)）。Spring Boot也会自动配置发送和接收消息需要的设施（infrastructure）。
+ 
+ 1. HornetQ支持
+
+如果发现HornetQ在classpath下能够使用，Spring Boot会自动配置ConnectionFactory。如果需要broker，将会开启一个内嵌的，已经自动配置好的broker（除非显式设置mode属性）。支持的modes有：embedded（显式声明使用一个内嵌的broker，如果该broker在classpath下不可用将导致一个错误），native（使用netty传输协议连接broker）。当后者被配置，Spring Boot配置一个连接到一个broker的ConnectionFactory，该broker运行在使用默认配置的本地机器上。
+
+**注**：如果使用spring-boot-starter-hornetq，连接到一个已存在的HornetQ实例所需的依赖都会被提供，同时还有用于集成JMS的Spring基础设施。将org.hornetq:hornetq-jms-server添加到你的应用中，你就可以使用embedded模式。
+
+HornetQ配置被spring.hornetq.*中的外部配置属性所控制。例如，你可能在application.properties声明以下片段：
+```java
+spring.hornetq.mode=native
+spring.hornetq.host=192.168.1.210
+spring.hornetq.port=9876
+```
+当内嵌broker时，你可以选择是否启用持久化，并且列表中的目标都应该是可用的。这些可以通过一个以逗号分割的列表来指定一些默认的配置项，或定义org.hornetq.jms.server.config.JMSQueueConfiguration或org.hornetq.jms.server.config.TopicConfiguration类型的bean(s)来配置更高级的队列和主题。具体参考[HornetQProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/jms/hornetq/HornetQProperties.java)。
+
+没有涉及JNDI查找，目标是通过名字解析的，名字即可以使用HornetQ配置中的name属性，也可以是配置中提供的names。
+
   2. ActiveQ支持
+
+如果发现ActiveMQ在classpath下可用，Spring Boot会配置一个ConnectionFactory。如果需要broker，将会开启一个内嵌的，已经自动配置好的broker（只要配置中没有指定broker URL）。
+
+ActiveMQ配置是通过spring.activemq.*中的外部配置来控制的。例如，你可能在application.properties中声明下面的片段：
+```java
+spring.activemq.broker-url=tcp://192.168.1.210:9876
+spring.activemq.user=admin
+spring.activemq.password=secret
+```
+具体参考[ActiveMQProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/jms/activemq/ActiveMQProperties.java)。
+
+默认情况下，如果目标还不存在，ActiveMQ将创建一个，所以目标是通过它们提供的名称解析出来的。
+
   3. 使用JNDI ConnectionFactory
+
+如果你在一个应用服务器中运行你的应用，Spring Boot将尝试使用JNDI定位一个JMS ConnectionFactory。默认情况会检查java:/JmsXA和java:/
+XAConnectionFactory。如果需要的话，你可以使用spring.jms.jndi-name属性来指定一个替代位置。
+```java
+spring.jms.jndi-name=java:/MyConnectionFactory
+```
   4. 发送消息
+
+Spring的JmsTemplate会被自动配置，你可以将它直接注入到你自己的beans中：
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
+@Component
+public class MyBean {
+private final JmsTemplate jmsTemplate;
+@Autowired
+public MyBean(JmsTemplate jmsTemplate) {
+this.jmsTemplate = jmsTemplate;
+}
+// ...
+}
+```
+
+**注**：[JmsMessagingTemplate](http://docs.spring.io/spring/docs/4.1.4.RELEASE/javadoc-api/org/springframework/jms/core/JmsMessagingTemplate.html)(Spring4.1新增的)也可以使用相同的方式注入。
+
   5. 接收消息
+
+当JMS基础设施能够使用时，任何bean都能够被@JmsListener注解，以创建一个监听者端点。如果没有定义JmsListenerContainerFactory，一个默认的将会被自动配置。下面的组件在someQueue目标上创建一个监听者端点。
+```java
+@Component
+public class MyBean {
+@JmsListener(destination = "someQueue")
+public void processMessage(String content) {
+// ...
+}
+}
+```
+具体查看[@EnableJms javadoc](http://docs.spring.io/spring/docs/4.1.4.RELEASE/javadoc-api/org/springframework/jms/annotation/EnableJms.html)。
 
 ### 发送邮件
 
+Spring框架使用JavaMailSender接口为发送邮件提供了一个简单的抽象，并且Spring Boot也为它提供了自动配置和一个starter模块。
+具体查看[JavaMailSender参考文档](http://docs.spring.io/spring/docs/4.1.4.RELEASE/spring-framework-reference/htmlsingle/#mail)。
+
+如果spring.mail.host和相关的库（通过spring-boot-starter-mail定义）都存在，一个默认的JavaMailSender将被创建。该sender可以通过spring.mail命名空间下的配置项进一步自定义，具体参考[MailProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/mail/MailProperties.java)。
+
 ### 使用JTA处理分布式事务
+
+Spring Boot使用一个[Atomkos](http://www.atomikos.com/)或[Bitronix](http://docs.codehaus.org/display/BTM/Home)的内嵌事务管理器来支持跨多个XA资源的分布式JTA事务。当部署到一个恰当的J2EE应用服务器时也会支持JTA事务。
+
+当发现一个JTA环境时，Spring Boot将使用Spring的JtaTransactionManager来管理事务。自动配置的JMS，DataSource和JPA　beans将被升级以支持XA事务。你可以使用标准的Spring idioms，比如@Transactional，来参与到一个分布式事务中。如果你处于JTA环境里，但仍旧想使用本地事务，你可以将spring.jta.enabled属性设置为false来禁用JTA自动配置功能。
+
 * 使用一个Atomikos事务管理器
+
+Atomikos是一个非常流行的开源事务管理器，它可以嵌入到你的Spring Boot应用中。你可以使用`spring-boot-starter-jta-atomikos`Starter POM去获取正确的Atomikos库。Spring Boot会自动配置Atomikos，并将合适的depends-on应用到你的Spring Beans上，确保它们以正确的顺序启动和关闭。
+
+默认情况下，Atomikos事务日志将被记录在应用home目录（你的应用jar文件放置的目录）下的transaction-logs文件夹中。你可以在application.properties文件中通过设置spring.jta.log-dir属性来自定义该目录。以spring.jta.开头的属性能用来自定义Atomikos的UserTransactionServiceIml实现。具体参考[AtomikosProperties javadoc](http://docs.spring.io/spring-boot/docs/1.2.2.BUILD-SNAPSHOT/api/org/springframework/boot/jta/atomikos/AtomikosProperties.html)。
+
+**注**：为了确保多个事务管理器能够安全地和相应的资源管理器配合，每个Atomikos实例必须设置一个唯一的ID。默认情况下，该ID是Atomikos实例运行的机器上的IP地址。为了确保生产环境中该ID的唯一性，你需要为应用的每个实例设置不同的spring.jta.transaction-manager-id属性值。
+
 * 使用一个Bitronix事务管理器
+
+Bitronix是另一个流行的开源JTA事务管理器实现。你可以使用`spring-boot-starter-jta-bitronix`starter POM为项目添加合适的Birtronix依赖。和Atomikos类似，Spring Boot将自动配置Bitronix，并对beans进行后处理（post-process）以确保它们以正确的顺序启动和关闭。
+
+默认情况下，Bitronix事务日志将被记录到应用home目录下的transaction-logs文件夹中。通过设置spring.jta.log-dir属性，你可以自定义该目录。以spring.jta.开头的属性将被绑定到bitronix.tm.Configuration　bean，你可以通过这完成进一步的自定义。具体参考[Bitronix文档](http://btm.codehaus.org/api/2.0.1/bitronix/tm/Configuration.html)。
+
+**注**：为了确保多个事务管理器能够安全地和相应的资源管理器配合，每个Bitronix实例必须设置一个唯一的ID。默认情况下，该ID是Bitronix实例运行的机器上的IP地址。为了确保生产环境中该ID的唯一性，你需要为应用的每个实例设置不同的spring.jta.transaction-manager-id属性值。
+
 * 使用一个J2EE管理的事务管理器
+
+如果你将Spring Boot应用打包为一个war或ear文件，并将它部署到一个J2EE的应用服务器中，那你就能使用应用服务器内建的事务管理器。Spring Boot将尝试通过查找常见的JNDI路径（java:comp/UserTransaction, java:comp/TransactionManager等）来自动配置一个事务管理器。如果使用应用服务器提供的事务服务，你通常需要确保所有的资源都被应用服务器管理，并通过JNDI暴露出去。Spring Boot通过查找JNDI路径java:/JmsXA或java:/XAConnectionFactory获取一个ConnectionFactory来自动配置JMS，并且你可以使用spring.datasource.jndi-name属性配置你的DataSource。
+
 * 混合XA和non-XA的JMS连接
+
+当使用JTA时，主要的JMS ConnectionFactory bean将是XA　aware，并参与到分布式事务中。有些情况下，你可能需要使用non-XA的ConnectionFactory去处理一些JMS消息。例如，你的JMS处理逻辑可能比XA超时时间长。
+
+如果想使用一个non-XA的ConnectionFactory，你可以注入nonXaJmsConnectionFactory　bean而不是@Primary jmsConnectionFactory　bean。为了保持一致，jmsConnectionFactory　bean将以别名xaJmsConnectionFactor来被使用。
+
+示例如下：
+```
+// Inject the primary (XA aware) ConnectionFactory
+@Autowired
+private ConnectionFactory defaultConnectionFactory;
+// Inject the XA aware ConnectionFactory (uses the alias and injects the same as above)
+@Autowired
+@Qualifier("xaJmsConnectionFactory")
+private ConnectionFactory xaConnectionFactory;
+// Inject the non-XA aware ConnectionFactory
+@Autowired
+@Qualifier("nonXaJmsConnectionFactory")
+private ConnectionFactory nonXaConnectionFactory;
+```
 * 支持可替代的内嵌事务管理器
+
+[XAConnectionFactoryWrapper](http://github.com/spring-projects/spring-boot/tree/master/spring-boot/src/main/java/org/springframework/boot/jta/XAConnectionFactoryWrapper.java)和[XADataSourceWrapper](http://github.com/spring-projects/spring-boot/tree/master/spring-boot/src/main/java/org/springframework/boot/jta/XADataSourceWrapper.java)接口用于支持可替换的内嵌事务管理器。该接口用于包装XAConnectionFactory和XADataSource　beans，并将它们暴露为普通的ConnectionFactory和DataSource　beans，这样在分布式事务中可以透明使用。
 
 ### Spring集成
 
+Spring集成提供基于消息和其他协议的，比如HTTP，TCP等的抽象。如果Spring集成在classpath下可用，它将会通过@EnableIntegration注解被初始化。如果classpath下'spring-integration-jmx'可用，则消息处理统计分析将被通过JMX发布出去。具体参考[IntegrationAutoConfiguration类](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/integration/IntegrationAutoConfiguration.java)。
+
 ### 基于JMX的监控和管理
 
+Java管理扩展（JMX）提供了一个标准的用于监控和管理应用的机制。默认情况下，Spring Boot将创建一个id为‘mbeanServer’的MBeanServer，并导出任何被Spring JMX注解（@ManagedResource,@ManagedAttribute,@ManagedOperation）的beans。具体参考[JmxAutoConfiguration类](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/jmx/JmxAutoConfiguration.java)。
+
 ### 测试
+
+Spring Boot提供很多有用的测试应用的工具。spring-boot-starter-test POM提供Spring Test，JUnit，Hamcrest和Mockito的依赖。在spring-boot核心模块org.springframework.boot.test包下也有很多有用的测试工具。
+
 * 测试作用域依赖
+
+如果使用spring-boot-starter-test ‘Starter POM’（在test作用域内），你将发现下列被提供的库：
+- Spring Test - 对Spring应用的集成测试支持
+- JUnit - de-facto标准，用于Java应用的单元测试。
+- Hamcrest - 一个匹配对象的库（也称为约束或前置条件），它允许assertThat等JUnit类型的断言。
+- Mockito - 一个Java模拟框架。
+
+这也有一些我们写测试用例时经常用到的库。如果它们不能满足你的要求，你可以随意添加其他的测试用的依赖库。
+
 * 测试Spring应用
+
+依赖注入最大的优点就是它能够让你的代码更容易进行单元测试。你只需简单的通过new操作符实例化对象，而不需要涉及Spring。你也可以使用模拟对象替换真正的依赖。
+
+你常常需要在进行单元测试后，开始集成测试（在这个过程中只需要涉及到Spring的ApplicationContext）。在执行集成测试时，不需要部署应用或连接到其他基础设施是非常有用的。
+
+Spring框架包含一个dedicated测试模块，用于这样的集成测试。你可以直接声明对org.springframework:spring-test的依赖，或使用spring-boot-starter-test ‘Starter POM’以透明的方式拉取它。
+
+如果你以前没有使用过spring-test模块，可以查看Spring框架参考文档中的[相关章节](http://docs.spring.io/spring/docs/4.1.4.RELEASE/spring-framework-reference/htmlsingle/#testing)。
+
 * 测试Spring Boot应用
+
+一个Spring Boot应用只是一个Spring ApplicationContext，所以在测试它时除了正常情况下处理一个vanilla Spring　context外不需要做其他特别事情。唯一需要注意的是，如果你使用SpringApplication创建上下文，外部配置，日志和Spring Boot的其他特性只会在默认的上下文中起作用。
+
+Spring Boot提供一个@SpringApplicationConfiguration注解用来替换标准的spring-test　@ContextConfiguration注解。如果使用@SpringApplicationConfiguration来设置你的测试中使用的ApplicationContext，它最终将通过SpringApplication创建，并且你将获取到Spring Boot的其他特性。
+
+示例如下：
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = SampleDataJpaApplication.class)
+public class CityRepositoryIntegrationTests {
+@Autowired
+CityRepository repository;
+// ...
+}	
+```
+**提示**：上下文加载器会通过查找@WebIntegrationTest或@WebAppConfiguration注解来猜测你想测试的是否是web应用（例如，是否使用MockMVC，MockMVC和@WebAppConfiguration是spring-test的一部分）。
+
+如果想让一个web应用启动，并监听它的正常的端口，你可以使用HTTP来测试它（比如，使用RestTemplate），并使用@WebIntegrationTest注解你的测试类（或它的一个父类）。这很有用，因为它意味着你可以对你的应用进行全栈测试，但在一次HTTP交互后，你需要在你的测试类中注入相应的组件并使用它们断言应用的内部状态。
+
+示例：
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = SampleDataJpaApplication.class)
+@WebIntegrationTest
+public class CityRepositoryIntegrationTests {
+@Autowired
+CityRepository repository;
+RestTemplate restTemplate = new TestRestTemplate();
+// ... interact with the running server
+}
+```
+**注**：Spring测试框架在每次测试时会缓存应用上下文。因此，只要你的测试共享相同的配置，不管你实际运行多少测试，开启和停止服务器只会发生一次。
+
+你可以为@WebIntegrationTest添加环境变量属性来改变应用服务器端口号，比如@WebIntegrationTest("server.port:9000")。此外，你可以将server.port和management.port属性设置为０来让你的集成测试使用随机的端口号，例如：
+
+
   1. 使用Spock测试Spring Boot应用
 * 测试工具
   1. ConfigFileApplicationContextInitializer
