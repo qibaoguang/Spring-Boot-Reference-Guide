@@ -128,8 +128,73 @@ info.app.version=1.0.0
 
 你可以使用已经存在的构建配置自动扩展info属性，而不是对在项目构建配置中存在的属性进行硬编码。这在Maven和Gradle都是可能的。
 
-- 
+**使用Maven自动扩展属性**
 
+对于Maven项目，你可以使用资源过滤来自动扩展info属性。如果使用spring-boot-starter-parent，你可以通过`@..@`占位符引用Maven的'project properties'。
+```java
+project.artifactId=myproject
+project.name=Demo
+project.version=X.X.X.X
+project.description=Demo project for info endpoint
+info.build.artifact=@project.artifactId@
+info.build.name=@project.name@
+info.build.description=@project.description@
+info.build.version=@project.version@
+```
+**注**：在上面的示例中，我们使用project.*来设置一些值以防止由于某些原因Maven的资源过滤没有开启。Maven目标`spring-boot:run`直接将`src/main/resources`添加到classpath下（出于热加载的目的）。这就绕过了资源过滤和自动扩展属性的特性。你可以使用`exec:java`替换该目标或自定义插件的配置，具体参考[plugin usage page](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/maven-plugin/usage.html)。
+
+如果你不使用starter parent，在你的pom.xml你需要添加（处于<build/>元素内）：
+```xml
+<resources>
+    <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+    </resource>
+</resources>
+```
+和（处于<plugins/>内）：
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-resources-plugin</artifactId>
+    <version>2.6</version>
+    <configuration>
+        <delimiters>
+            <delimiter>@</delimiter>
+        </delimiters>
+    </configuration>
+</plugin>
+```
+**使用Gradle自动扩展属性**
+
+通过配置Java插件的processResources任务，你也可以自动使用来自Gradle项目的属性扩展info属性。
+```java
+processResources {
+    expand(project.properties)
+}
+```
+然后你可以通过占位符引用Gradle项目的属性：
+```java
+info.build.name=${name}
+info.build.description=${description}
+info.build.version=${version}
+```
+- Git提交信息
+
+info端点的另一个有用特性是，当项目构建完成后，它可以发布关于你的git源码仓库状态的信息。如果在你的jar中包含一个git.properties文件，git.branch和git.commit属性将被加载。
+
+对于Maven用户，`spring-boot-starter-parent` POM包含一个能够产生git.properties文件的预配置插件。只需要简单的将下面的声明添加到你的POM中：
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>pl.project13.maven</groupId>
+            <artifactId>git-commit-id-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+```
+对于Gradle用户可以使用一个相似的插件[gradle-git](https://github.com/ajoberstar/gradle-git)，尽管为了产生属性文件可能需要稍微多点工作。
 
 * 基于HTTP的监控和管理
 
