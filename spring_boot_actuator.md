@@ -30,6 +30,7 @@ dependencies {
 端点暴露的方式取决于你采用的技术类型。大部分应用选择HTTP监控，端点的ID映射到一个URL。例如，默认情况下，health端点将被映射到/health。
 
 下面的端点都是可用的：
+
 | ID | 描述　|敏感（Sensitive）|
 | ---- | :----- | :----- |
 |autoconfig|显示一个auto-configuration的报告，该报告展示所有auto-configuration候选者及它们被应用或未被应用的原因|true|
