@@ -245,9 +245,74 @@ management.port=8081
 management.address=127.0.0.1
 ```
 
-### 禁用HTTP端点
+* 禁用HTTP端点
 
 如果不想使用HTTP暴露端点，你可以将管理端口设置为-1：
 `management.port=-1`
 
-### HTTP Health端点访问限制
+* HTTP Health端点访问限制
+
+通过health端点暴露的信息根据是否为匿名访问而不同。默认情况下，当匿名访问时，任何有关服务器的健康详情都被隐藏了，该端点只简单的指示服务器是运行（up）还是停止（down）。此外，当匿名访问时，响应会被缓存一个可配置的时间段以防止端点被用于'拒绝服务'攻击。`endpoints.health.time-to-live`属性被用来配置缓存时间（单位为毫秒），默认为1000毫秒，也就是1秒。
+
+上述的限制可以被禁止，从而允许匿名用户完全访问health端点。想达到这个效果，可以将`endpoints.health.sensitive`设为`false`。
+
+### 基于JMX的监控和管理
+
+Java管理扩展（JMX）提供了一种标准的监控和管理应用的机制。默认情况下，Spring Boot在`org.springframework.boot`域下将管理端点暴露为JMX MBeans。
+
+* 自定义MBean名称
+
+MBean的名称通常产生于端点的id。例如，health端点被暴露为`org.springframework.boot/Endpoint/HealthEndpoint`。
+
+如果你的应用包含多个Spring ApplicationContext，你会发现存在名称冲突。为了解决这个问题，你可以将`endpoints.jmx.uniqueNames`设置为true，这样MBean的名称总是唯一的。
+
+你也可以自定义JMX域，所有的端点都在该域下暴露。这里有个application.properties示例：
+```java
+endpoints.jmx.domain=myapp
+endpoints.jmx.uniqueNames=true
+```
+* 禁用JMX端点
+
+如果不想通过JMX暴露端点，你可以将`spring.jmx.enabled`属性设置为false：
+`spring.jmx.enabled=false`
+
+* 使用Jolokia通过HTTP实现JMX远程管理
+
+Jolokia是一个JMX-HTTP桥，它提供了一种访问JMX beans的替代方法。想要使用Jolokia，只需添加`org.jolokia:jolokia-core`的依赖。例如，使用Maven需要添加下面的配置：
+```xml
+<dependency>
+    <groupId>org.jolokia</groupId>
+    <artifactId>jolokia-core</artifactId>
+ </dependency>
+```
+在你的管理HTTP服务器上可以通过`/jolokia`访问Jolokia。
+
+- 自定义Jolokia
+
+Jolokia有很多配置，传统上一般使用servlet参数进行设置。使用Spring Boot，你可以在application.properties中通过把参数加上`jolokia.config.`前缀来设置：
+```java
+jolokia.config.debug=true
+```
+- 禁用Jolokia
+
+如果你正在使用Jolokia，但不想让Spring Boot配置它，只需要简单的将`endpoints.jolokia.enabled`属性设置为false：
+`endpoints.jolokia.enabled=false`   
+
+### 使用远程shell来进行监控和管理
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
