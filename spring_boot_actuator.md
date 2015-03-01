@@ -196,13 +196,58 @@ info端点的另一个有用特性是，当项目构建完成后，它可以发�
 ```
 对于Gradle用户可以使用一个相似的插件[gradle-git](https://github.com/ajoberstar/gradle-git)，尽管为了产生属性文件可能需要稍微多点工作。
 
-* 基于HTTP的监控和管理
+### 基于HTTP的监控和管理
 
+如果你正在开发一个Spring MVC应用，Spring Boot执行器自动将所有启用的端点通过HTTP暴露出去。默认约定使用端点的id作为URL路径，例如，health暴露为/health。
 
+* 保护敏感端点
 
+如果你的项目中添加的有Spring Security，所有通过HTTP暴露的敏感端点都会受到保护。默认情况下会使用基本认证（basic authentication，用户名为user，密码为应用启动时在控制台打印的密码）。
 
+你可以使用Spring属性改变用户名，密码和访问端点需要的安全角色。例如，你可能会在application.properties中添加下列配置：
+```java
+security.user.name=admin
+security.user.password=secret
+management.security.role=SUPERUSER
+```
 
+**注**：如果你不使用Spring Security，那你的HTTP端点就被公开暴露，你应该慎重考虑启用哪些端点。具体参考[Section 40.1, “Customizing endpoints”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#production-ready-customizing-endpoints)。
 
+* 自定义管理服务器的上下文路径
 
+有时候将所有的管理端口划分到一个路径下是有用的。例如，你的应用可能已经将`/info`作为他用。你可以用`management.contextPath`属性为管理端口设置一个前缀：
+```java
+management.context-path=/manage
+```
+上面的application.properties示例将把端口从`/{id}`改为`/manage/{id}`（比如，/manage/info）。
 
+* 自定义管理服务器的端口
 
+对于基于云的部署，使用默认的HTTP端口暴露管理端点（endpoints）是明智的选择。然而，如果你的应用是在自己的数据中心运行，那你可能倾向于使用一个不同的HTTP端口来暴露端点。
+
+`management.port`属性可以用来改变HTTP端口：
+```java
+management.port=8081
+```
+由于你的管理端口经常被防火墙保护，不对外暴露也就不需要保护管理端点，即使你的主要应用是安全的。在这种情况下，classpath下会存在Spring Security库，你可以设置下面的属性来禁用安全管理策略（management security）：
+```java
+management.security.enabled=false
+```
+（如果classpath下不存在Spring Security，那也就不需要显示的以这种方式来禁用安全管理策略，它甚至可能会破坏应用程序。）
+
+* 自定义管理服务器的地址
+
+你可以通过设置`management.address`属性来定义管理端点可以使用的地址。这在你只想监听内部或面向生产环境的网络，或只监听来自localhost的连接时非常有用。
+
+下面的application.properties示例不允许远程管理连接：
+```java
+management.port=8081
+management.address=127.0.0.1
+```
+
+### 禁用HTTP端点
+
+如果不想使用HTTP暴露端点，你可以将管理端口设置为-1：
+`management.port=-1`
+
+### HTTP Health端点访问限制
