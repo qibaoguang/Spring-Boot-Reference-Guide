@@ -274,7 +274,9 @@ endpoints.jmx.uniqueNames=true
 * 禁用JMX端点
 
 如果不想通过JMX暴露端点，你可以将`spring.jmx.enabled`属性设置为false：
-`spring.jmx.enabled=false`
+```java
+spring.jmx.enabled=false
+```
 
 * 使用Jolokia通过HTTP实现JMX远程管理
 
@@ -296,9 +298,94 @@ jolokia.config.debug=true
 - 禁用Jolokia
 
 如果你正在使用Jolokia，但不想让Spring Boot配置它，只需要简单的将`endpoints.jolokia.enabled`属性设置为false：
-`endpoints.jolokia.enabled=false`   
+```java
+endpoints.jolokia.enabled=false
+```   
 
 ### 使用远程shell来进行监控和管理
+
+Spring Boot支持集成一个称为'CRaSH'的Java shell。你可以在CRaSH中使用ssh或telnet命令连接到运行的应用。为了启用远程shell支持，你只需添加`spring-boot-starter-remote-shell`的依赖：
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-remote-shell</artifactId>
+ </dependency>
+```
+**注**：如果想使用telnet访问，你还需添加对`org.crsh:crsh.shell.telnet`的依赖。
+
+* 连接远程shell
+
+默认情况下，远程shell监听端口2000以等待连接。默认用户名为`user`，密码为随机生成的，并且在输出日志中会显示。如果应用使用Spring Security，该shell默认使用[相同的配置](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-security)。如果不是，将使用一个简单的认证策略，你可能会看到类似这样的信息：
+```java
+Using default password for shell access: ec03e16c-4cf4-49ee-b745-7c8255c1dd7e
+```
+Linux和OSX用户可以使用`ssh`连接远程shell，Windows用户可以下载并安装[PuTTY](http://www.putty.org/)。
+```shell
+$ ssh -p 2000 user@localhost
+
+user@localhost's password:
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::  (v1.3.0.BUILD-SNAPSHOT) on myhost
+```
+输入help可以获取一系列命令的帮助。Spring boot提供`metrics`，`beans`，`autoconfig`和`endpoint`命令。
+
+- 远程shell证书
+
+你可以使用`shell.auth.simple.user.name`和`shell.auth.simple.user.password`属性配置自定义的连接证书。也可以使用Spring Security的AuthenticationManager处理登录职责。具体参考Javadoc[CrshAutoConfiguration](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/api/org/springframework/boot/actuate/autoconfigure/CrshAutoConfiguration.html)和[ShellProperties](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/api/org/springframework/boot/actuate/autoconfigure/ShellProperties.html)。
+
+* 扩展远程shell
+
+有很多有趣的方式可以用来扩展远程shell。
+
+- 远程shell命令
+
+你可以使用Groovy或Java编写其他的shell命令（具体参考CRaSH文档）。默认情况下，Spring Boot会搜索以下路径的命令：
+1. `classpath*:/commands/**`
+2. `classpath*:/crash/commands/**`
+
+**注**：可以通过`shell.commandPathPatterns`属性改变搜索路径。
+
+下面是一个从`src/main/resources/commands/hello.groovy`加载的'hello world'命令：
+```java
+package commands
+
+import org.crsh.cli.Usage
+import org.crsh.cli.Command
+
+class hello {
+
+    @Usage("Say Hello")
+    @Command
+    def main(InvocationContext context) {
+        return "Hello"
+    }
+
+}
+```
+Spring Boot将一些额外属性添加到了InvocationContext，你可以在命令中访问它们：
+
+|属性名称|描述|
+|------|:------|
+|spring.boot.version|Spring Boot的版本|
+|spring.version|Spring框架的核心版本|
+|spring.beanfactory|获取Spring的BeanFactory|
+|spring.environment|获取Spring的Environment|
+
+- 远程shell插件
+
+除了创建新命令，也可以扩展CRaSH shell的其他特性。所有继承`org.crsh.plugin.CRaSHPlugin`的Spring Beans将自动注册到shell。
+
+具体查看[CRaSH参考文档](http://www.crashub.org/)。
+
+### 度量指标（Metrics）
+
+Spring Boot执行器包括一个支持'gauge'和'counter'级别的度量指标服务。'gauge'记录一个单一值；'counter'记一个增量（增加或减少）。
+
 
 
 
