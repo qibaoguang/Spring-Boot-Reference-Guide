@@ -384,15 +384,123 @@ Spring Boot将一些额外属性添加到了InvocationContext，你可以在命�
 
 ### 度量指标（Metrics）
 
-Spring Boot执行器包括一个支持'gauge'和'counter'级别的度量指标服务。'gauge'记录一个单一值；'counter'记一个增量（增加或减少）。
+Spring Boot执行器包括一个支持'gauge'和'counter'级别的度量指标服务。'gauge'记录一个单一值；'counter'记录一个增量（增加或减少）。同时，Spring Boot提供一个[PublicMetrics](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/endpoint/PublicMetrics.java)接口，你可以实现它，从而暴露以上两种机制不能记录的指标。具体参考[SystemPublicMetrics](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/endpoint/SystemPublicMetrics.java)。
 
+所有HTTP请求的指标都被自动记录，所以如果点击`metrics`端点，你可能会看到类似以下的响应：
+```javascript
+{
+    "counter.status.200.root": 20,
+    "counter.status.200.metrics": 3,
+    "counter.status.200.star-star": 5,
+    "counter.status.401.root": 4,
+    "gauge.response.star-star": 6,
+    "gauge.response.root": 2,
+    "gauge.response.metrics": 3,
+    "classes": 5808,
+    "classes.loaded": 5808,
+    "classes.unloaded": 0,
+    "heap": 3728384,
+    "heap.committed": 986624,
+    "heap.init": 262144,
+    "heap.used": 52765,
+    "mem": 986624,
+    "mem.free": 933858,
+    "processors": 8,
+    "threads": 15,
+    "threads.daemon": 11,
+    "threads.peak": 15,
+    "uptime": 494836,
+    "instance.uptime": 489782,
+    "datasource.primary.active": 5,
+    "datasource.primary.usage": 0.25
+}
+```
+此处我们可以看到基本的`memory`，`heap`，`class loading`，`processor`和`thread pool`信息，连同一些HTTP指标。在该实例中，`root`('/')，`/metrics` URLs分别返回20次，3次`HTTP 200`响应。同时可以看到`root` URL返回了4次`HTTP 401`（unauthorized）响应。双asterix（star-star）来自于被Spring MVC `/**`匹配到的一个请求（通常为一个静态资源）。
 
+`gauge`级别展示了一个请求的最后响应时间。所以，`root`的最后请求被响应耗时2毫秒，`/metrics`耗时3毫秒。
 
+* 系统指标
 
+Spring Boot暴露以下系统指标：
+- 系统内存总量（mem），单位:Kb
+- 空闲内存数量（mem.free），单位:Kb
+- 处理器数量（processors）
+- 系统正常运行时间（uptime），单位:毫秒
+- 应用上下文（就是一个应用实例）正常运行时间（instance.uptime），单位:毫秒
+- 系统平均负载（systemload.average）
+- 堆信息（heap，heap.committed，heap.init，heap.used），单位:Kb
+- 线程信息（threads，thread.peak，thead.daemon）
+- 类加载信息（classes，classes.loaded，classes.unloaded）
+- 垃圾收集信息（gc.xxx.count, gc.xxx.time）
 
+* 数据源指标
 
+Spring Boot会为你应用中定义的支持的DataSource暴露以下指标：
+- 最大连接数（datasource.xxx.max）
+- 最小连接数（datasource.xxx.min）
+- 活动连接数（datasource.xxx.active）
+- 连接池的使用情况（datasource.xxx.usage）
 
+所有的数据源指标共用`datasoure.`前缀。该前缀对每个数据源都非常合适：
+- 如果是主数据源（唯一可用的数据源或存在的数据源中被@Primary标记的）前缀为datasource.primary
+- 如果数据源bean名称以dataSource结尾，那前缀就是bean的名称去掉dataSource的部分（例如，batchDataSource的前缀是datasource.batch）
+- 其他情况使用bean的名称作为前缀
 
+通过注册一个自定义版本的DataSourcePublicMetrics bean，你可以覆盖部分或全部的默认行为。默认情况下，Spring Boot提供支持所有数据源的元数据；如果你喜欢的数据源恰好不被支持，你可以添加另外的DataSourcePoolMetadataProvider beans。具体参考DataSourcePoolMetadataProvidersConfiguration。
+
+* Tomcat session指标
+
+如果你使用Tomcat作为内嵌的servlet容器，session指标将被自动暴露出去。`httpsessions.active`和`httpsessions.max`提供了活动的和最大的session数量。
+
+* 记录自己的指标
+
+想要记录你自己的指标，只需将[CounterService](https://github.com/spring-projects/spring-boot/blob/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/metrics/CounterService.java)或[GaugeService](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/metrics/GaugeService.java)注入到你的bean中。CounterService暴露increment，decrement和reset方法；GaugeService提供一个submit方法。
+
+下面是一个简单的示例，它记录了方法调用的次数：
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.metrics.CounterService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class MyService {
+
+    private final CounterService counterService;
+
+    @Autowired
+    public MyService(CounterService counterService) {
+        this.counterService = counterService;
+    }
+
+    public void exampleMethod() {
+        this.counterService.increment("services.system.myservice.invoked");
+    }
+
+}
+```
+**注**：你可以将任何的字符串用作指标的名称，但最好遵循所选存储或图技术的指南。[Matt Aimonetti’s Blog](http://matt.aimonetti.net/posts/2013/06/26/practical-guide-to-graphite-monitoring/)中有一些好的关于图（Graphite）的指南。
+
+* 添加你自己的公共指标
+
+想要添加额外的，每次指标端点被调用时都会重新计算的度量指标，只需简单的注册其他的PublicMetrics实现bean(s)。默认情况下，端点会聚合所有这样的beans，通过定义自己的MetricsEndpoint可以轻易改变这种情况。
+
+* 指标仓库
+
+指标服务实现通过绑定一个[MetricRepository](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/metrics/repository/MetricRepository.java)。`MetricRepository`负责存储和追溯指标信息。Spring Boot提供一个`InMemoryMetricRepository`和一个`RedisMetricRepository`（默认使用in-memory仓库），不过你可以编写自己的`MetricRepository`。`MetricRepository`接口实际是`MetricReader`接口和`MetricWriter`接口的上层组合。具体参考[Javadoc](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/api/org/springframework/boot/actuate/metrics/repository/MetricRepository.html)
+
+没有什么能阻止你直接将`MetricRepository`的数据导入应用中的后端存储，但我们建议你使用默认的`InMemoryMetricRepository`（如果担心堆使用情况，你可以使用自定义的Map实例），然后通过一个scheduled export job填充后端仓库（意思是先将数据保存到内存中，然后通过异步job将数据持久化到数据库，可以提高系统性能）。通过这种方式，你可以将指标数据缓存到内存中，然后通过低频率或批量导出来减少网络拥堵。Spring Boot提供一个`Exporter`接口及一些帮你开始的基本实现。
+
+* Dropwizard指标
+
+[Dropwizard ‘Metrics’库](https://dropwizard.github.io/metrics/)的用户会发现Spring Boot指标被发布到了`com.codahale.metrics.MetricRegistry`。当你声明对`io.dropwizard.metrics:metrics-core`库的依赖时会创建一个默认的`com.codahale.metrics.MetricRegistry` Spring bean；如果需要自定义，你可以注册自己的@Bean实例。来自于`MetricRegistry`的指标也是自动通过`/metrics`端点暴露的。
+
+用户可以通过使用合适类型的指标名称作为前缀来创建Dropwizard指标（比如，`histogram.*`, `meter.*`）。
+
+* 消息渠道集成
+
+如果你的classpath下存在'Spring Messaging' jar，一个名为`metricsChannel`的`MessageChannel`将被自动创建（除非已经存在一个）。此外，所有的指标更新事件作为'messages'发布到该渠道上。订阅该渠道的客户端可以进行额外的分析或行动。
+
+### 审计
 
 
 
