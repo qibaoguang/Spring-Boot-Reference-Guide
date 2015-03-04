@@ -545,9 +545,9 @@ Spring Boot执行器具有一个灵活的审计框架，一旦Spring Security处
 
 默认情况下，使用的`InMemoryTraceRepository`将存储最新的100个事件。如果需要扩展该容量，你可以定义自己的`InMemoryTraceRepository`实例。如果需要，你可以创建自己的替代`TraceRepository`实现。
 
-### 过程监控
+### 进程监控
 
-在Spring Boot执行器中，你可以找到几个创建有利于过程监控的文件的类：
+在Spring Boot执行器中，你可以找到几个创建有利于进程监控的文件的类：
 - `ApplicationPidFileWriter`创建一个包含应用PID的文件（默认位于应用目录，文件名为application.pid）
 - `EmbeddedServerPortFileWriter`创建一个或多个包含内嵌服务器端口的文件（默认位于应用目录，文件名为application.port）
 
