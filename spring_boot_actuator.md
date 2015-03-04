@@ -486,7 +486,7 @@ public class MyService {
 
 * 指标仓库
 
-指标服务实现通过绑定一个[MetricRepository](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/metrics/repository/MetricRepository.java)。`MetricRepository`负责存储和追溯指标信息。Spring Boot提供一个`InMemoryMetricRepository`和一个`RedisMetricRepository`（默认使用in-memory仓库），不过你可以编写自己的`MetricRepository`。`MetricRepository`接口实际是`MetricReader`接口和`MetricWriter`接口的上层组合。具体参考[Javadoc](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/api/org/springframework/boot/actuate/metrics/repository/MetricRepository.html)
+通过绑定一个[MetricRepository](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/metrics/repository/MetricRepository.java)来实现指标服务。`MetricRepository`负责存储和追溯指标信息。Spring Boot提供一个`InMemoryMetricRepository`和一个`RedisMetricRepository`（默认使用in-memory仓库），不过你可以编写自己的`MetricRepository`。`MetricRepository`接口实际是`MetricReader`接口和`MetricWriter`接口的上层组合。具体参考[Javadoc](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/api/org/springframework/boot/actuate/metrics/repository/MetricRepository.html)
 
 没有什么能阻止你直接将`MetricRepository`的数据导入应用中的后端存储，但我们建议你使用默认的`InMemoryMetricRepository`（如果担心堆使用情况，你可以使用自定义的Map实例），然后通过一个scheduled export job填充后端仓库（意思是先将数据保存到内存中，然后通过异步job将数据持久化到数据库，可以提高系统性能）。通过这种方式，你可以将指标数据缓存到内存中，然后通过低频率或批量导出来减少网络拥堵。Spring Boot提供一个`Exporter`接口及一些帮你开始的基本实现。
 
@@ -502,12 +502,66 @@ public class MyService {
 
 ### 审计
 
+Spring Boot执行器具有一个灵活的审计框架，一旦Spring Security处于活动状态（默认抛出'authentication success'，'failure'和'access denied'异常），它就会发布事件。这对于报告非常有用，同时可以基于认证失败实现一个锁定策略。
 
+你也可以使用审计服务处理自己的业务事件。为此，你可以将存在的`AuditEventRepository`注入到自己的组件，并直接使用它，或者只是简单地通过Spring `ApplicationEventPublisher`发布`AuditApplicationEvent`（使用`ApplicationEventPublisherAware`）。
 
+### 追踪（Tracing）
 
+对于所有的HTTP请求Spring Boot自动启用追踪。你可以查看`trace`端点，并获取最近一些请求的基本信息：
+```javascript
+[{
+    "timestamp": 1394343677415,
+    "info": {
+        "method": "GET",
+        "path": "/trace",
+        "headers": {
+            "request": {
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Connection": "keep-alive",
+                "Accept-Encoding": "gzip, deflate",
+                "User-Agent": "Mozilla/5.0 Gecko/Firefox",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Cookie": "_ga=GA1.1.827067509.1390890128; ..."
+                "Authorization": "Basic ...",
+                "Host": "localhost:8080"
+            },
+            "response": {
+                "Strict-Transport-Security": "max-age=31536000 ; includeSubDomains",
+                "X-Application-Context": "application:8080",
+                "Content-Type": "application/json;charset=UTF-8",
+                "status": "200"
+            }
+        }
+    }
+},{
+    "timestamp": 1394343684465,
+    ...
+}]
+```
+- 自定义追踪
 
+如果需要追踪其他的事件，你可以将一个[TraceRepository](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/trace/TraceRepository.java)注入到你的Spring Beans中。`add`方法接收一个将被转化为JSON的`Map`结构，该数据将被记录下来。
 
+默认情况下，使用的`InMemoryTraceRepository`将存储最新的100个事件。如果需要扩展该容量，你可以定义自己的`InMemoryTraceRepository`实例。如果需要，你可以创建自己的替代`TraceRepository`实现。
 
+### 过程监控
 
+在Spring Boot执行器中，你可以找到几个创建有利于过程监控的文件的类：
+- `ApplicationPidFileWriter`创建一个包含应用PID的文件（默认位于应用目录，文件名为application.pid）
+- `EmbeddedServerPortFileWriter`创建一个或多个包含内嵌服务器端口的文件（默认位于应用目录，文件名为application.port）
 
+默认情况下，这些writers没有被激活，但你可以使用下面描述的任何方式来启用它们。
 
+* 扩展属性
+
+你需要激活`META-INF/spring.factories`文件里的listener(s)：
+```java
+org.springframework.context.ApplicationListener=\
+org.springframework.boot.actuate.system.ApplicationPidFileWriter,
+org.springframework.boot.actuate.system.EmbeddedServerPortFileWriter
+```
+
+* 以编程方式
+
+你也可以通过调用`SpringApplication.addListeners(…)`方法来激活一个监听器，并传递相应的`Writer`对象。该方法允许你通过`Writer`构造器自定义文件名和路径。
