@@ -102,7 +102,24 @@ Spring Boot进一步延伸了该技术，它会基于你的代码尝试推导你
 
 **注**：想要理解自定义是如何生效，可以查看Spring Boot CLI源码中的[CompilerAutoConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-cli/src/main/java/org/springframework/boot/cli/compiler/CompilerAutoConfiguration.java)子类。
 
-- 
+- 推断"grab"坐标
+
+Spring Boot扩展Groovy标准"@Grab"注解使其能够允许你指定一个没有group或version的依赖，例如`@Grab('freemarker')`。
+artifact’s的组和版本是通过查看Spring Boot的依赖元数据推断出来的。注意默认的元数据是和你使用的CLI版本绑定的－只有在你迁移到一个CLI新版本时它才会改变，这样当你的依赖改变时你就可以控制了。在[附录](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#appendix-dependency-versions)的表格中可以查看默认元数据包含的依赖和它们的版本。
+
+- 默认import语句
+
+为了帮助你减少Groovy代码量，一些`import`语句被自动包含进来了。注意上面的示例中引用`@Component`，`@RestController`和`@RequestMapping`而没有使用全限定名或`import`语句。
+
+**注**：很多Spring注解在不使用`import`语句的情况下可以正常工作。尝试运行你的应用，看一下在添加imports之前哪些会失败。
+
+- 自动创建main方法
+
+跟等效的Java应用不同，你不需要在Groovy脚本中添加一个`public static void main(String[] args)`方法。Spring Boot 会使用你编译后的代码自动创建一个SpringApplication。
+
+- 自定义"grab"元数据
+
+Spring Boot提供一个新的`@GrabMetadata`注解，你可以使用它提供自定义的依赖元数据，以覆盖Spring Boot的默认配置。该元数据通过使用提供一个或多个配置文件坐标的注解来指定（使用一个属性标识符"type"部署到Maven仓库）。
 
 * 测试你的代码
 
