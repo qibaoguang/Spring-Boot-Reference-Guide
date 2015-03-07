@@ -163,10 +163,124 @@ class ApplicationTests {
 
 * 多源文件应用
 
-
-
+你可以在所有接收文件输入的命令中使用shell通配符。这允许你轻松处理来自一个目录下的多个文件，例如：
+```shell
+$ spring run *.groovy
+```
+如果你想将'test'或'spec'代码从主应用代码中分离，这项技术就十分有用了：
+```shell
+$ spring test app/*.groovy test/*.groovy
+```
 * 应用打包
+
+你可以使用`jar`命令打包应用程序为一个可执行的jar文件。例如：
+```shell
+$ spring jar my-app.jar *.groovy
+```
+最终的jar包括编译应用产生的类和所有依赖，这样你就可以使用`java -jar`来执行它了。该jar文件也包括来自应用classpath的实体。你可以使用`--include`和`--exclude`添加明确的路径（两者都是用逗号分割，同样都接收值为'+'和'-'的前缀，'-'意味着它们将从默认设置中移除）。默认包含（includes）：
+```shell
+public/**, resources/**, static/**, templates/**, META-INF/**, *
+```
+默认排除(excludes)：
+```shell
+.*, repository/**, build/**, target/**, **/*.jar, **/*.groovy
+```
+查看`spring help jar`可以获得更多信息。
+
 * 初始化新工程
+
+`init`命令允许你使用[start.spring.io](https://start.spring.io/)在不离开shell的情况下创建一个新的项目。例如：
+```shell
+$ spring init --dependencies=web,data-jpa my-project
+Using service at https://start.spring.io
+Project extracted to '/Users/developer/example/my-project'
+```
+这创建了一个`my-project`目录，它是一个基本Maven且依赖`spring-boot-starter-web`和`spring-boot-starter-data-jpa`的项目。你可以使用`--list`参数列出该服务的能力。
+```shell
+$ spring init --list
+=======================================
+Capabilities of https://start.spring.io
+=======================================
+
+Available dependencies:
+-----------------------
+actuator - Actuator: Production ready features to help you monitor and manage your application
+...
+web - Web: Support for full-stack web development, including Tomcat and spring-webmvc
+websocket - Websocket: Support for WebSocket development
+ws - WS: Support for Spring Web Services
+
+Available project types:
+------------------------
+gradle-build -  Gradle Config [format:build, build:gradle]
+gradle-project -  Gradle Project [format:project, build:gradle]
+maven-build -  Maven POM [format:build, build:maven]
+maven-project -  Maven Project [format:project, build:maven] (default)
+
+...
+```
+`init`命令支持很多选项，查看`help`输出可以获得更多详情。例如，下面的命令创建一个使用Java8和war打包的gradle项目：
+```shell
+$ spring init --build=gradle --java-version=1.8 --dependencies=websocket --packaging=war sample-app.zip
+Using service at https://start.spring.io
+Content saved to 'sample-app.zip'
+```
 * 使用内嵌shell
+
+Spring Boot包括完整的BASH和zsh shells的命令行脚本。如果你不使用它们中的任何一个（可能你是一个Window用户），那你可以使用`shell`命令启用一个集成shell。
+```shell
+$ spring shell
+Spring Boot (v1.3.0.BUILD-SNAPSHOT)
+Hit TAB to complete. Type \'help' and hit RETURN for help, and \'exit' to quit.
+```
+从内嵌shell中可以直接运行其他命令：
+```shell
+$ version
+Spring CLI v1.3.0.BUILD-SNAPSHOT
+```
+内嵌shell支持ANSI颜色输出和tab补全。如果需要运行一个原生命令，你可以使用`$`前缀。点击ctrl-c将退出内嵌shell。
+
 * 为CLI添加扩展
-* 
+
+使用`install`命令可以为CLI添加扩展。该命令接收一个或多个格式为`group:artifact:version`的artifact坐标集。例如：
+```shell
+$ spring install com.example:spring-boot-cli-extension:1.0.0.RELEASE
+```
+除了安装你提供坐标的artifacts标识外，所有依赖也会被安装。使用`uninstall`可以卸载一个依赖。和`install`命令一样，它接收一个或多个格式为`group:artifact:version`的artifact坐标集。例如：
+```shell
+$ spring uninstall com.example:spring-boot-cli-extension:1.0.0.RELEASE
+```
+它会通过你提供的坐标卸载相应的artifacts标识和它们的依赖。
+
+为了卸载所有附加依赖，你可以使用`--all`选项。例如：
+```shell
+$ spring uninstall --all
+```
+* 使用Groovy beans DSL开发应用
+
+Spring框架4.0版本对beans{} DSL（借鉴自[Grails](http://grails.org/)）提供原生支持，你可以使用相同的格式在你的Groovy应用程序脚本中嵌入bean定义。有时候这是一个包括外部特性的很好的方式，比如中间件声明。例如：
+```java
+@Configuration
+class Application implements CommandLineRunner {
+
+    @Autowired
+    SharedService service
+
+    @Override
+    void run(String... args) {
+        println service.message
+    }
+
+}
+
+import my.company.SharedService
+
+beans {
+    service(SharedService) {
+        message = "Hello World"
+    }
+}
+```
+你可以使用beans{}混合位于相同文件的类声明，只要它们都处于顶级，或如果你喜欢的话，可以将beans DSL放到一个单独的文件中。
+
+
