@@ -119,13 +119,52 @@ artifact’s的组和版本是通过查看Spring Boot的依赖元数据推断出
 
 - 自定义"grab"元数据
 
-Spring Boot提供一个新的`@GrabMetadata`注解，你可以使用它提供自定义的依赖元数据，以覆盖Spring Boot的默认配置。该元数据通过使用提供一个或多个配置文件坐标的注解来指定（使用一个属性标识符"type"部署到Maven仓库）。
+Spring Boot提供一个新的`@GrabMetadata`注解，你可以使用它提供自定义的依赖元数据，以覆盖Spring Boot的默认配置。该元数据通过使用提供一个或多个配置文件坐标的注解来指定（使用一个属性标识符"type"部署到Maven仓库）.。配置文件中的每个实体必须遵循`group:module=version`的格式。
 
+例如，下面的声明：
+```java
+`@GrabMetadata("com.example.custom-versions:1.0.0")`
+```
+将会加载Maven仓库处于`com/example/custom-versions/1.0.0/`下的`custom-versions-1.0.0.properties`文件。
+
+可以通过注解指定多个属性文件，它们会以声明的顺序被使用。例如：
+```java
+`@GrabMetadata(["com.example.custom-versions:1.0.0",
+        "com.example.more-versions:1.0.0"])`
+```
+意味着位于`more-versions`的属性将覆盖位于`custom-versions`的属性。
+
+你可以在任何能够使用`@Grab`的地方使用`@GrabMetadata`，然而，为了确保元数据的顺序一致，你在应用程序中最多只能使用一次`@GrabMetadata`。[Spring IO Platform](http://platform.spring.io/)是一个非常有用的依赖元数据源(Spring Boot的超集)，例如：
+```java
+@GrabMetadata('io.spring.platform:platform-versions:1.0.4.RELEASE')
+```
 * 测试你的代码
 
+`test`命令允许你编译和运行应用程序的测试用例。常规使用方式如下：
+```shell
+$ spring test app.groovy tests.groovy
+Total: 1, Success: 1, : Failures: 0
+Passed? true
+```
+在这个示例中，`test.groovy`包含JUnit `@Test`方法或Spock `Specification`类。所有的普通框架注解和静态方法在不使用import导入的情况下，仍旧可以使用。
 
+下面是我们使用的`test.groovy`文件（含有一个JUnit测试）：
+```java
+class ApplicationTests {
+
+    @Test
+    void homeSaysHello() {
+        assertEquals("Hello World!", new WebApplication().home())
+    }
+
+}
+```
+**注**：如果有多个测试源文件，你可以倾向于使用一个test目录来组织它们。
 
 * 多源文件应用
+
+
+
 * 应用打包
 * 初始化新工程
 * 使用内嵌shell
