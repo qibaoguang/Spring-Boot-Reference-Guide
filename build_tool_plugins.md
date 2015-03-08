@@ -274,9 +274,34 @@ bootRepackage {
 |withJarTask|`Jar`任务的名称或值，用于定位要被repackage的存档|
 |customConfiguration|自定义配置的名称，用于填充内嵌的lib目录（不指定该属性，你将获取所有编译和运行时依赖）|
 
-* 
+* 使用Gradle自定义配置进行Repackage
 
+有时候不打包解析自`compile`，`runtime`和`provided`作用域的默认依赖可能更合适些。如果创建的可执行jar被原样运行，你需要将所有的依赖内嵌进该jar中；然而，如果目的是explode一个jar文件，并手动运行main类，你可能在`CLASSPATH`下已经有一些可用的库了。在这种情况下，你可以使用不同的依赖集重新打包（repackage）你的jar。
 
+使用自定义的配置将自动禁用来自`compile`，`runtime`和`provided`作用域的依赖解析。自定义配置即可以定义为全局的（处于`springBoot`部分内），也可以定义为任务级的。
+```gradle
+task clientJar(type: Jar) {
+    appendix = 'client'
+    from sourceSets.main.output
+    exclude('**/*Something*')
+}
+
+task clientBoot(type: BootRepackage, dependsOn: clientJar) {
+    withJarTask = clientJar
+    customConfiguration = "mycustomconfiguration"
+}
+```
+在以上示例中，我们创建了一个新的`clientJar` Jar任务从你编译后的源中打包一个自定义文件集。然后我们创建一个新的`clientBoot` BootRepackage任务，并让它使用`clientJar`任务和`mycustomconfiguration`。
+```gradle
+configurations {
+    mycustomconfiguration.exclude group: 'log4j'
+}
+
+dependencies {
+    mycustomconfiguration configurations.runtime
+}
+```
+在`BootRepackage`中引用的配置是一个正常的[Gradle配置](http://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.Configuration.html)。在上面的示例中，我们创建了一个新的名叫`mycustomconfiguration`的配置，指示它来自一个`runtime`，并排除对`log4j`的依赖。如果`clientBoot`任务被执行，重新打包的jar将含有所有来自`runtime`作用域的依赖，除了`log4j` jars。
 
 
 * 
