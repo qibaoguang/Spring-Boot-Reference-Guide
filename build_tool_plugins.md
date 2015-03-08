@@ -112,7 +112,7 @@ Spring Boot Gradle插件为Gradle提供Spring Boot支持，它允许你打包可
 * 包含该插件
 
 想要使用Spring Boot Gradle插件，你只需简单的包含一个`buildscript`依赖，并应用`spring-boot`插件：
-```shell
+```gradle
 buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.3.0.BUILD-SNAPSHOT")
@@ -121,7 +121,7 @@ buildscript {
 apply plugin: 'spring-boot'
 ```
 如果想使用一个里程碑或快照版本，你可以添加相应的repositories引用：
-```shell
+```gradle
 buildscript {
     repositories {
         maven.url "http://repo.spring.io/snapshot"
@@ -133,7 +133,7 @@ buildscript {
 * 声明不带版本的依赖
 
 `spring-boot`插件会为你的构建注册一个自定义的Gradle `ResolutionStrategy`，它允许你在声明对"神圣"的artifacts的依赖时获取版本号。为了充分使用该功能，只需要想通常那样声明依赖，但将版本号设置为空：
-```java
+```gradle
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.thymeleaf:thymeleaf-spring4")
@@ -143,7 +143,7 @@ dependencies {
 **注**：你声明的`spring-boot` Gradle插件的版本决定了"blessed"依赖的实际版本（确保可以重复构建）。你最好总是将`spring-boot` gradle插件版本设置为你想用的Spring Boot实际版本。提供的版本详细信息可以在[附录](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#appendix-dependency-versions)中找到。
 
 `spring-boot`插件对于没有指定版本的依赖只会提供一个版本。如果不想使用插件提供的版本，你可以像平常那样在声明依赖的时候指定版本。例如：
-```java
+```gradle
 dependencies {
     compile("org.thymeleaf:thymeleaf-spring4:2.1.1.RELEASE")
 }
@@ -151,7 +151,7 @@ dependencies {
 * 自定义版本管理
 
 如果你需要不同于Spring Boot的"blessed"依赖，有可能的话可以自定义`ResolutionStrategy`使用的版本。替代的版本元数据使用`versionManagement`配置。例如：
-```java
+```gradle
 dependencies {
     versionManagement("com.mycorp:mycorp-versions:1.0.0.RELEASE@properties")
     compile("org.springframework.data:spring-data-hadoop")
@@ -191,7 +191,7 @@ Gradle处理"exclude rules"的方式和Maven稍微有些不同，在使用starte
 为了确保正确的排除被实际应用，Spring Boot Gradle插件将自动添加排除规则。所有排除被定义在`spring-boot-dependencies` POM，并且针对"starter" POMs的隐式规则也会被添加。
 
 如果不想自动应用排除规则，你可以使用以下配置：
-```java
+```gradle
 springBoot {
     applyExcludeRules=false
 }
@@ -208,7 +208,7 @@ $ gradle build
 $ java -jar build/libs/mymodule-0.0.1-SNAPSHOT.jar
 ```
 为了构建一个即能执行也可以部署到外部容器的war包，你需要将内嵌容器依赖标记为"providedRuntime"，比如：
-```java
+```gradle
 ...
 apply plugin: 'war'
 
@@ -243,7 +243,7 @@ $ gradle bootRun
 默认情况下，以这种方式运行项目可以让你的静态classpath资源（比如，默认位于`src/main/resources`下）在应用运行期间被重新加载。使静态资源可以重新加载意味着`bootRun`任务不会使用`processResources`任务的输出，比如，当调用`bootRun`时，你的应用将以资源未处理的形式来使用它们。
 
 你可以禁止直接使用静态classpath资源。这意味着资源不再是可重新加载的，但`processResources`任务的输出将会被使用。想要这样做，只需将`bootRun`任务的`addResources`设为false：
-```java
+```gradle
 bootRun {
     addResources = false
 }
