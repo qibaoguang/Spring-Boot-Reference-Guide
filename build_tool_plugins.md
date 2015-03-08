@@ -132,6 +132,73 @@ buildscript {
 ```
 * 声明不带版本的依赖
 
+`spring-boot`插件会为你的构建注册一个自定义的Gradle `ResolutionStrategy`，它允许你在声明对"神圣"的artifacts的依赖时获取版本号。为了充分使用该功能，只需要想通常那样声明依赖，但将版本号设置为空：
+```java
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.thymeleaf:thymeleaf-spring4")
+    compile("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
+}
+```
+**注**：你声明的`spring-boot` Gradle插件的版本决定了"blessed"依赖的实际版本（确保可以重复构建）。你最好总是将`spring-boot` gradle插件版本设置为你想用的Spring Boot实际版本。提供的版本详细信息可以在[附录](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#appendix-dependency-versions)中找到。
+
+`spring-boot`插件对于没有指定版本的依赖只会提供一个版本。如果不想使用插件提供的版本，你可以像平常那样在声明依赖的时候指定版本。例如：
+```java
+dependencies {
+    compile("org.thymeleaf:thymeleaf-spring4:2.1.1.RELEASE")
+}
+```
+* 自定义版本管理
+
+如果你需要不同于Spring Boot的"blessed"依赖，有可能的话可以自定义`ResolutionStrategy`使用的版本。替代的版本元数据使用`versionManagement`配置。例如：
+```java
+dependencies {
+    versionManagement("com.mycorp:mycorp-versions:1.0.0.RELEASE@properties")
+    compile("org.springframework.data:spring-data-hadoop")
+}
+```
+版本信息需要作为一个`.properties`文件发布到一个仓库中。对于上面的示例，`mycorp-versions.properties`文件可能包含以下内容：
+```java
+org.springframework.data\:spring-data-hadoop=2.0.0.RELEASE
+```
+属性文件优先于Spring Boot默认设置，如果有必要的话可以覆盖版本号。
+
+* 默认排除规则
+
+Gradle处理"exclude rules"的方式和Maven稍微有些不同，在使用starter POMs时这可能会引起无法预料的结果。特别地，当一个依赖可以通过不同的路径访问时，对该依赖声明的exclusions将不会生效。例如，如果一个starter POM声明以下内容：
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>4.0.5.RELEASE</version>
+        <exclusions>
+            <exclusion>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>4.0.5.RELEASE</version>
+    </dependency>
+</dependencies>
+```
+`commons-logging` jar不会被Gradle排除，因为通过没有`exclusion`元素的`spring-context`可以传递性的拉取到它（spring-context → spring-core → commons-logging）。
+
+为了确保正确的排除被实际应用，Spring Boot Gradle插件将自动添加排除规则。所有排除被定义在`spring-boot-dependencies` POM，并且针对"starter" POMs的隐式规则也会被添加。
+
+如果不想自动应用排除规则，你可以使用以下配置：
+```java
+springBoot {
+    applyExcludeRules=false
+}
+```
+* 打包可执行jar和war文件
+
+一旦`spring-boot`插件被应用到你的项目，它将使用`bootRepackage`任务自动尝试重写存档以使它们能够执行。为了构建一个jar或war，你需要按通常的方式配置项目。
 
 
 
