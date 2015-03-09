@@ -303,5 +303,122 @@ dependencies {
 ```
 在`BootRepackage`中引用的配置是一个正常的[Gradle配置](http://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.Configuration.html)。在上面的示例中，我们创建了一个新的名叫`mycustomconfiguration`的配置，指示它来自一个`runtime`，并排除对`log4j`的依赖。如果`clientBoot`任务被执行，重新打包的jar将含有所有来自`runtime`作用域的依赖，除了`log4j` jars。
 
+* 配置选项
 
-* 
+可用的配置选项如下：
+
+|名称|描述|
+|mainClass|可执行jar运行的main类|
+|providedConfiguration|provided配置的名称（默认为providedRuntime）|
+|backupSource|在重新打包之前，原先的存档是否备份（默认为true）|
+|customConfiguration|自定义配置的名称|
+|layout|存档类型，对应于内部依赖是如何制定的（默认基于存档类型进行推测）|
+|requiresUnpack|一个依赖列表（格式为"groupId:artifactId"，为了运行，它们需要从fat jars中解压出来。）所有节点被打包进胖jar，但运行的时候它们将被自动解压|
+
+* 理解Gradle插件是如何工作的
+
+当`spring-boot`被应用到你的Gradle项目，一个默认的名叫`bootRepackage`的任务被自动创建。`bootRepackage`任务依赖于Gradle `assemble`任务，当执行时，它会尝试找到所有限定符为空的jar artifacts（也就是说，tests和sources jars被自动跳过）。
+
+由于`bootRepackage`查找'所有'创建jar artifacts的事实，Gradle任务执行的顺序就非常重要了。多数项目只创建一个单一的jar文件，所以通常这不是一个问题。然而，如果你正打算创建一个更复杂的，使用自定义`jar`和`BootRepackage`任务的项目setup，有几个方面需要考虑。
+
+如果'仅仅'从项目创建自定义jar文件，你可以简单地禁用默认的`jar`和`bootRepackage`任务：
+```gradle
+jar.enabled = false
+bootRepackage.enabled = false
+```
+另一个选项是指示默认的`bootRepackage`任务只能使用一个默认的`jar`任务：
+```gradle
+bootRepackage.withJarTask = jar
+```
+如果你有一个默认的项目setup，在该项目中，主（main）jar文件被创建和重新打包。并且，你仍旧想创建额外的自定义jars，你可以将自定义的repackage任务结合起来，然后使用`dependsOn`，这样`bootJars`任务就会在默认的`bootRepackage`任务执行以后运行：
+```gradle
+task bootJars
+bootJars.dependsOn = [clientBoot1,clientBoot2,clientBoot3]
+build.dependsOn(bootJars)
+```
+上面所有方面经常用于避免一个已经创建的boot jar又被重新打包的情况。重新打包一个存在的boot jar不是什么大问题，但你可能会发现它包含不必要的依赖。
+
+* 使用Gradle将artifacts发布到一个Maven仓库
+
+如果你声明依赖但没有指定版本，且你想要将artifacts发布到一个Maven仓库，那你需要使用详细的Spring Boot依赖管理来配置Maven发布。通过配置它发布继承自`spring-boot-starter-parent`的poms或引入来自`spring-boot-dependencies`的依赖管理可以实现该需求。这种配置的具体细节取决于你如何使用Gradle及如何发布该artifacts的。
+
+- 自定义Gradle，用于产生一个继承依赖管理的pom
+
+下面示例展示了如何配置Gradle去产生一个继承自`spring-boot-starter-parent`的pom。请参考[Gradle用户指南](http://gradle.org/docs/current/userguide/userguide.html)获取更多信息。
+```gradle
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            pom {
+                project {
+                    parent {
+                        groupId "org.springframework.boot"
+                        artifactId "spring-boot-starter-parent"
+                        version "1.3.0.BUILD-SNAPSHOT"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+- 自定义Gradle，用于产生一个导入依赖管理的pom
+
+以下示例展示了如何配置Gradle去产生一个导入`spring-boot-dependencies`提供的依赖管理的pom。请参考[Gradle用户指南](http://gradle.org/docs/current/userguide/userguide.html)获取更多信息。
+```gradle
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            pom {
+                project {
+                    dependencyManagement {
+                        dependencies {
+                            dependency {
+                                groupId "org.springframework.boot"
+                                artifactId "spring-boot-dependencies"
+                                version "1.3.0.BUILD-SNAPSHOT"
+                                type "pom"
+                                scope "import"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+### 对其他构建系统的支持
+
+如果想使用除了Maven和Gradle之外的构建工具，你可能需要开发自己的插件。可执行jars需要遵循一个特定格式，并且一些实体需要以不压缩的方式写入（详情查看附录中的[可执行jar格式](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#executable-jar)章节）。
+
+Spring Boot Maven和Gradle插件都利用`spring-boot-loader-tools`来实际地产生jars。如果需要，你也可以自由地直接使用该库。
+
+* 重新打包存档
+
+使用`org.springframework.boot.loader.tools.Repackager`可以将一个存在的存档重新打包，这样它就变成一个自包含的可执行存档。`Repackager`类需要提供单一的构造器参数，它引用一个存在的jar或war包。使用两个可用的`repackage()`方法中的一个来替换原始的文件或写入一个新的目标。在repackager运行前还可以设置各种配置。
+
+* 内嵌的库
+
+当重新打包一个存档时，你可以使用`org.springframework.boot.loader.tools.Libraries`接口来包含对依赖文件的引用。在这里我们不提供任何该Libraries接口的具体实现，因为它们通常跟具体的构建系统相关。
+
+如果你的存档已经包含libraries，你可以使用`Libraries.NONE`。
+
+* 查找main类
+
+如果你没有使用`Repackager.setMainClass()`指定一个main类，该repackager将使用[ASM](http://asm.ow2.org/)去读取class文件，然后尝试查找一个合适的，具有`public static void main(String[] args)`方法的类。如果发现多个候选者，将会抛出异常。
+
+* repackage实现示例
+
+这里是一个传统的repackage示例：
+```java
+Repackager repackager = new Repackager(sourceJarFile);
+repackager.setBackupSource(false);
+repackager.repackage(new Libraries() {
+            @Override
+            public void doWithLibraries(LibraryCallback callback) throws IOException {
+                // Build system specific implementation, callback for each dependency
+                // callback.library(new Library(nestedFile, LibraryScope.COMPILE));
+            }
+        });
+```
