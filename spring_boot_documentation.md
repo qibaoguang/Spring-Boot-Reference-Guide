@@ -20,7 +20,23 @@ Spring Boot参考指南有[html](http://docs.spring.io/spring-boot/docs/1.3.0.BU
 **注**：Spring Boot的全部都是开源的，包括文档！如果你发现问题有问题，或只是想提高它们，请[参与进来](http://github.com/spring-projects/spring-boot/tree/master)！
 
 * 第一步
+
+如果你想从总体上对Spring Boot或Spring入门，可以从[这里开始](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started)！
+
+- 从零开始：[概述](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started-introducing-spring-boot)|[要求](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started-system-requirements)|[安装](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started-installing-spring-boot)
+- 教程：[第一部分](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started-first-application)|[第二部分](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started-first-application-code)
+- 运行示例：[第一部分](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started-first-application-run)|[第二部分](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started-first-application-executable-jar)
+
 * 使用Spring Boot
+
+准备开始实际使用Spring Boot？[我们已经为你做好掩护](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot).
+
+- 构建系统：[Maven](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-maven)|[Gradle](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-gradle)|[Ant](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-ant)|[Starter POMs](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-starter-poms)
+- 最佳实践：[代码结构](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-structuring-your-code)|[@Configuration](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-configuration-classes)｜[@EnableAutoConfiguration](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-auto-configuration)｜[Beans和依赖注入](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-spring-beans-and-dependency-injection)
+- 运行代码：[]()
+- 应用打包
+- Spring Boot命令行
+
 * 了解Spring Boot特性
 * 迁移到生存环境
 * 高级主题
