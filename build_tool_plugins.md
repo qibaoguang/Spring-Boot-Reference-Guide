@@ -308,6 +308,7 @@ dependencies {
 可用的配置选项如下：
 
 |名称|描述|
+|-------|:--------|
 |mainClass|可执行jar运行的main类|
 |providedConfiguration|provided配置的名称（默认为providedRuntime）|
 |backupSource|在重新打包之前，原先的存档是否备份（默认为true）|
