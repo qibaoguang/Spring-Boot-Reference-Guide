@@ -39,7 +39,7 @@ Spring Boot参考指南有[html](http://docs.spring.io/spring-boot/docs/1.3.0.BU
 
 * 了解Spring Boot特性
 
-需要更多Spring Boot核心特性？[这是问你准备的](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features)！
+需要更多Spring Boot核心特性？[这是为你准备的](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features)！
 
 - 核心特性：[SpringApplication](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-spring-application)｜[外部配置](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-external-config)｜[Profiles](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-profiles)｜[日志](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-logging)
 - Web应用：[MVC](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-spring-mvc)｜[内嵌容器](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-embedded-container)
