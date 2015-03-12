@@ -16,8 +16,28 @@ Spring Boot使开发独立的，产品级别的基于Spring的应用变得非常
 - 提供一系列大型项目常用的非功能性特征（比如，内嵌服务器，安全，指标，健康检测，外部化配置）。
 - 绝对不需要代码生成及XML配置。
 
-* 系统要求
-* Spring Boot安装
+### 系统要求
+
+默认情况下，Spring Boot 1.3.0.BUILD-SNAPSHOT 需要Java７和Spring框架4.1.3或以上。你可以在Java6下使用Spring Boot，不过需要添加额外配置。具体参考[Section 73.9, “How to use Java 6” ](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#howto-use-java-6)。构建环境明确支持的有Maven（3.2+）和Gradle（1.12+）。
+
+**注**：尽管你可以在Java6或Java7环境下使用Spring Boot，通常我们建议你如果可能的话就使用Java8。
+
+* Servlet容器
+
+下列内嵌容器支持开箱即用：
+
+|名称|Servlet版本|Java版本|
+|--------|:-------|:-------|
+|Tomcat 8|3.1|Java 7+|
+|Tomcat 7|3.0|Java 6+|
+|Jetty 9|3.1|Java 7+|
+|Jetty 8|3.0|Java 6+|
+|Undertow 1.1|3.1|Java 7+|
+
+你也可以将Spring Boot应用部署到任何兼容Servlet 3.0+的容器。
+
+### Spring Boot安装
+
 * Spring Boot CLI安装
 * 从Spring Boot早期版本升级
 * 开发你的第一个Spring Boot应用
