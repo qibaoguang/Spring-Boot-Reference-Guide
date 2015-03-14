@@ -166,6 +166,107 @@ dependencies {
 ```
 * Spring Boot CLI安装
 
+Spring Boot是一个命令行工具，用于使用Spring进行快速原型搭建。它允许你运行[Groovy](http://groovy.codehaus.org/)脚本，这意味着你可以使用类Java的语法，并且没有那么多的模板代码。
+
+你没有必要为了使用Spring Boot而去用CLI，但它绝对是助力Spring应用的最快方式。
+
+- 手动安装
+
+你可以从Spring软件仓库下载Spring CLI分发包：
+
+1. [spring-boot-cli-1.3.0.BUILD-SNAPSHOT-bin.zip](http://repo.spring.io/snapshot/org/springframework/boot/spring-boot-cli/1.3.0.BUILD-SNAPSHOT/spring-boot-cli-1.3.0.BUILD-SNAPSHOT-bin.zip)
+2. [spring-boot-cli-1.3.0.BUILD-SNAPSHOT-bin.tar.gz](http://repo.spring.io/snapshot/org/springframework/boot/spring-boot-cli/1.3.0.BUILD-SNAPSHOT/spring-boot-cli-1.3.0.BUILD-SNAPSHOT-bin.tar.gz)
+
+不稳定的[snapshot分发包](http://repo.spring.io/snapshot/org/springframework/boot/spring-boot-cli/)也能获取到。
+
+下载完成后，遵循解压后的存档里的[INSTALL.txt](http://raw.github.com/spring-projects/spring-boot/master/spring-boot-cli/src/main/content/INSTALL.txt)操作指南进行安装。一般而言，在`.zip`文件的`bin/`目录下存在一个`spring`脚本（Windows下是`spring.bat`），或者使用`java -jar`来运行一个`.jar`文件（该脚本会帮你确定classpath被正确设置）。
+
+- 使用GVM安装
+
+GVM（Groovy环境管理器）可以用来管理多种不同版本的Groovy和Java二进制包，包括Groovy自身和Spring Boot CLI。可以从[gvmtool.net](http://gvmtool.net/)获取`gvm`，并使用以下命令安装Spring Boot：
+```shell
+$ gvm install springboot
+$ spring --version
+Spring Boot v1.3.0.BUILD-SNAPSHOT
+```
+如果你正在为CLI开发新的特性，并想轻松获取你刚构建的版本，可以使用以下命令：
+```shell
+$ gvm install springboot dev /path/to/spring-boot/spring-boot-cli/target/spring-boot-cli-1.3.0.BUILD-SNAPSHOT-bin/spring-1.3.0.BUILD-SNAPSHOT/
+$ gvm use springboot dev
+$ spring --version
+Spring CLI v1.3.0.BUILD-SNAPSHOT
+```
+这将会在你的gvm仓库中安装一个名叫`dev`的本地`spring`实例。它指向你的目标构建位置，所以每次你重新构建Spring Boot，`spring`将会是最新的。
+
+你可以通过以下命令来验证：
+```shell
+$ gvm ls springboot
+
+================================================================================
+Available Springboot Versions
+================================================================================
+> + dev
+* 1.3.0.BUILD-SNAPSHOT
+
+================================================================================
++ - local version
+* - installed
+> - currently in use
+================================================================================
+```
+- 使用OSX Homebrew进行安装
+
+如果你的环境是Mac，并使用[Homebrew](http://brew.sh/)，想要安装Spring Boot CLI只需如下操作：
+```shell
+$ brew tap pivotal/tap
+$ brew install springboot
+```
+Homebrew将把`spring`安装到`/usr/local/bin`下。
+
+**注**：如果该方案不可用，可能是因为你的brew版本太老了。你只需执行`brew update`并重试即可。
+
+- 使用MacPorts进行安装
+
+如果你的环境是Mac，并使用[MacPorts](http://www.macports.org/)，想要安装Spring Boot CLI只需如下操作：
+```shell
+$ sudo port install spring-boot-cli
+```
+- 命令行实现
+
+Spring Boot CLI启动脚本为[BASH](http://en.wikipedia.org/wiki/Bash_%28Unix_shell%29)和[zsh](http://en.wikipedia.org/wiki/Zsh) shells提供完整的命令行实现。你可以在任何shell中`source`脚本（名称也是`spring`），或将它放到你个人或系统范围的bash实现初始化中。在一个Debian系统里，系统范围的脚本位于`/shell-completion/bash`下，当一个新的shell启动时该目录下的所有脚本都被执行。想要手动运行该脚本，例如，你已经使用`GVM`进行安装了：
+```shell
+$ . ~/.gvm/springboot/current/shell-completion/bash/spring
+$ spring <HIT TAB HERE>
+  grab  help  jar  run  test  version
+```
+
+**注**：如果你使用Homebrew或MacPorts安装Spring Boot CLI，命令行实现脚本会自动注册到你的shell。
+
+- Spring CLI示例快速入门
+
+下面是一个相当简单的web应用，你可以用它测试你的安装是否成功。创建一个名叫`app.groovy`的文件：
+```groovy
+@RestController
+class ThisWillActuallyRun {
+
+    @RequestMapping("/")
+    String home() {
+        "Hello World!"
+    }
+
+}
+```
+然后简单地从一个shell中运行它：
+```shell
+$ spring run app.groovy
+```
+**注**：当你首次运行该应用时将会花费一点时间，因为需要下载依赖。后续运行将会快很多。
+
+在你最喜欢的浏览器中打开[localhost:8080](localhost:8080)，然后你应该看到以下输出：
+```java
+Hello World!
+```
+
 ### 从Spring Boot早期版本升级
 
 
