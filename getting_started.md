@@ -266,9 +266,77 @@ $ spring run app.groovy
 ```java
 Hello World!
 ```
-
 ### 从Spring Boot早期版本升级
 
+如果你正在升级一个Spring Boot早期版本，查看下放在[project wiki](http://github.com/spring-projects/spring-boot/wiki)上的"release notes"。你会发现每次发布的更新指南和一个"new and noteworthy"特性列表。
+
+想要升级一个已安装的CLI，你需要使用合适的包管理命令（例如，`brew upgrade`），或如果你是手动安装CLI，按照[standard instructions](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#getting-started-manual-cli-installation)操作并记得更新你的`PATH`环境变量以移除任何老的引用。
 
 ### 开发你的第一个Spring Boot应用
- 
+
+让我们使用Java开发一个简单的"Hello World!" web应用，来强调下Spring Boot的一些关键特性。我们将使用Maven构建该项目，因为大多数IDEs都支持它。
+
+**注**：[spring.io](http://spring.io/)网站包含很多使用Spring Boot的"入门"指南。如果你正在找特定问题的解决方案，可以先去那瞅瞅。
+
+在开始前，你需要打开一个终端，检查是否安装可用的Java版本和Maven：
+```shell
+$ java -version
+java version "1.7.0_51"
+Java(TM) SE Runtime Environment (build 1.7.0_51-b13)
+Java HotSpot(TM) 64-Bit Server VM (build 24.51-b03, mixed mode)
+```
+```shell
+$ mvn -v
+Apache Maven 3.2.3 (33f8c3e1027c3ddde99d3cdebad2656a31e8fdf4; 2014-08-11T13:58:10-07:00)
+Maven home: /Users/user/tools/apache-maven-3.1.1
+Java version: 1.7.0_51, vendor: Oracle Corporation
+```
+**注**：该示例需要创建自己的文件夹。后续的操作假设你已创建一个合适的文件夹，并且它是你的“当前目录”。
+
+* 创建POM
+
+我们需要以创建一个Maven `pom.xml`文件作为开始。该`pom.xml`是用来构建项目的处方。打开你最喜欢的文本编辑器，然后添加以下内容：
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>myproject</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.3.0.BUILD-SNAPSHOT</version>
+    </parent>
+
+    <!-- Additional lines to be added here... -->
+
+    <!-- (you don't need this if you are using a .RELEASE version) -->
+    <repositories>
+        <repository>
+            <id>spring-snapshots</id>
+            <url>http://repo.spring.io/snapshot</url>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <url>http://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-snapshots</id>
+            <url>http://repo.spring.io/snapshot</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <url>http://repo.spring.io/milestone</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>
+```
+
+* 
