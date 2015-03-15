@@ -390,22 +390,103 @@ public class Example {
 
 * @RestController和@RequestMapping注解
 
-我们的`Example`类上使用的第一个注解是`@RestController`。这被称为一个构造型（stereotype）注解。
+我们的`Example`类上使用的第一个注解是`@RestController`。这被称为一个构造型（stereotype）注解。它为阅读代码的人们提供建议。对于Spring，该类扮演了一个特殊角色。在本示例中，我们的类是一个web `@Controller`，所以当处理进来的web请求时，Spring会询问它。
+
+`@RequestMapping`注解提供路由信息。它告诉Spring任何来自"/"路径的HTTP请求都应该被映射到`home`方法。`@RestController`注解告诉Spring以字符串的形式渲染结果，并直接返回给调用者。
+
+**注**：`@RestController`和`@RequestMapping`注解是Spring MVC注解（它们不是Spring Boot的特定部分）。具体查看Spring参考文档的[MVC章节](http://docs.spring.io/spring/docs/4.1.5.RELEASE/spring-framework-reference/htmlsingle#mvc)。
 
 * @EnableAutoConfiguration注解
+
+第二个类级别的注解是`@EnableAutoConfiguration`。这个注解告诉Spring Boot根据添加的jar依赖猜测你想如何配置Spring。由于`spring-boot-starter-web`添加了Tomcat和Spring MVC，所以auto-configuration将假定你正在开发一个web应用并相应地对Spring进行设置。
+
+**Starter POMs和Auto-Configuration**：设计auto-configuration的目的是更好的使用"Starter POMs"，但这两个概念没有直接的联系。你可以自由地挑选starter POMs以外的jar依赖，并且Spring Boot将仍旧尽最大努力去自动配置你的应用。
+
 * main方法
+
+我们的应用程序最后部分是`main`方法。这只是一个标准的方法，它遵循Java对于一个应用程序入口点的约定。我们的main方法通过调用`run`，将业务委托给了Spring Boot的`SpringApplication`类。`SpringApplication`将引导我们的应用，启动Spring，相应地启动被自动配置的Tomcat web服务器。我们需要将`Example.class`作为参数传递给`run`方法来告诉`SpringApplication`谁是主要的Spring组件。为了暴露任何的命令行参数，`args`数组也会被传递过去。
 
 ### 运行示例
 
+到此我们的应用应该可以工作了。由于使用了`spring-boot-starter-parent` POM，这样我们就有了一个非常有用的`run`目标，我们可以用它启动程序。在项目根目录下输入`mvn spring-boot:run`来启动应用：
+```shell
+$ mvn spring-boot:run
 
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::  (v1.3.0.BUILD-SNAPSHOT)
+....... . . .
+....... . . . (log output here)
+....... . . .
+........ Started Example in 2.222 seconds (JVM running for 6.514)
+```
+如果使用一个浏览器打开[localhost:8080](http://localhost:8080)，你应该可以看到以下输出：
+```shell
+Hello World!
+```
+点击`ctrl-c`温雅地关闭应用程序。
 
+### 创建一个可执行jar
 
+让我们通过创建一个完全自包含的可执行jar文件来结束我们的示例，该jar文件可以在生产环境运行。可执行jars（有时候被成为胖jars "fat jars"）是包含你的编译后的类和你的代码运行所需的依赖jar的存档。
 
+**可执行jars和Java**：Java没有提供任何标准的加载内嵌jar文件（即jar文件中还包含jar文件）的方法。如果你想发布一个自包含的应用这就是一个问题。为了解决该问题，很多开发者采用"共享的"jars。一个共享的jar简单地将来自所有jars的类打包进一个单独的“超级jar”。采用共享jar方式的问题是很难区分在你的应用程序中可以使用哪些库。在多个jars中如果存在相同的文件名（但内容不一样）也会是一个问题。Spring Boot采取一个[不同的途径](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#executable-jar)，并允许你真正的内嵌jars。
 
+为了创建可执行的jar，需要将`spring-boot-maven-plugin`添加到我们的`pom.xml`中。在`dependencies`节点下插入以下内容：
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+```
+**注**：`spring-boot-starter-parent` POM包含用于绑定`repackage`目标的`<executions>`配置。如果你不使用parent POM，你将需要自己声明该配置。具体参考[插件文档](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/maven-plugin/usage.html)。
 
+保存你的`pom.xml`，然后从命令行运行`mvn package`：
+```shell
+$ mvn package
 
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building myproject 0.0.1-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] .... ..
+[INFO] --- maven-jar-plugin:2.4:jar (default-jar) @ myproject ---
+[INFO] Building jar: /Users/developer/example/spring-boot-example/target/myproject-0.0.1-SNAPSHOT.jar
+[INFO]
+[INFO] --- spring-boot-maven-plugin:1.3.0.BUILD-SNAPSHOT:repackage (default) @ myproject ---
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+```
+如果查看`target`目录，你应该看到`myproject-0.0.1-SNAPSHOT.jar`。该文件应该有10Mb左右的大小。如果想偷看内部结构，你可以运行`jar tvf`：
+```shell
+$ jar tvf target/myproject-0.0.1-SNAPSHOT.jar
+```
+在`target`目录下，你应该也能看到一个很小的名为`myproject-0.0.1-SNAPSHOT.jar.original`的文件。这是在Spring Boot重新打包前Maven创建的原始jar文件。
 
+为了运行该应用程序，你可以使用`java -jar`命令：
+```shell
+$ java -jar target/myproject-0.0.1-SNAPSHOT.jar
 
-
-
-* 
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::  (v1.3.0.BUILD-SNAPSHOT)
+....... . . .
+....... . . . (log output here)
+....... . . .
+........ Started Example in 2.536 seconds (JVM running for 2.864)
+```
+和以前一样，点击`ctrl-c`来温柔地退出程序。
