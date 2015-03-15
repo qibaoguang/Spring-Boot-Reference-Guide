@@ -338,5 +338,74 @@ Java version: 1.7.0_51, vendor: Oracle Corporation
     </pluginRepositories>
 </project>
 ```
+这会给你一个可运转的构建，你可以通过运行`mvn package`测试它（现在你可以忽略"jar将是空的-没有包含任何内容！"的警告）。
+
+**注**：目前你可以将该项目导入一个IDE（大多数现代的Java IDE都包含对Maven的内建支持）。简单起见，我们将继续使用普通的文本编辑器完成该示例。
+
+* 添加classpath依赖
+
+Spring Boot提供很多"Starter POMs"，这能够让你轻松的将jars添加到你的classpath下。我们的示例程序已经在POM的`partent`节点使用了`spring-boot-starter-parent`。`spring-boot-starter-parent`是一个特殊的starter，它提供了有用的Maven默认设置。同时，它也提供了一个`dependency-management`节点，这样对于”blessed“依赖你可以省略`version`标记。
+
+其他的”Starter POMs“简单的提供依赖，这些依赖可能是你开发特定类型的应用时需要的。由于正在开发一个web应用，我们将添加一个`spring-boot-starter-web`依赖-但在此之前，让我们看下目前所拥有的：
+```shell
+$ mvn dependency:tree
+[INFO] com.example:myproject:jar:0.0.1-SNAPSHOT
+```
+`mvn dependency:tree`命令以树形表示来打印你的项目依赖。你可以看到`spring-boot-starter-parent`本身并没有提供依赖。编辑我们的`pom.xml`，并在`parent`节点下添加`spring-boot-starter-web`依赖：
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+</dependencies>
+```
+如果再次运行`mvn dependency:tree`，你将看到现在有了一些其他依赖，包括Tomcat web服务器和Spring Boot自身。
+
+* 编写代码
+
+为了完成应用程序，我们需要创建一个单独的Java文件。Maven默认会编译`src/main/java`下的源码，所以你需要创建那样的文件结构，然后添加一个名为`src/main/java/Example.java`的文件：
+```java
+import org.springframework.boot.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.stereotype.*;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@EnableAutoConfiguration
+public class Example {
+
+    @RequestMapping("/")
+    String home() {
+        return "Hello World!";
+    }
+
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(Example.class, args);
+    }
+
+}
+```
+尽管这里没有太多代码，但很多事情正在发生。让我们分步探讨重要的部分。
+
+* @RestController和@RequestMapping注解
+
+我们的`Example`类上使用的第一个注解是`@RestController`。这被称为一个构造型（stereotype）注解。
+
+* @EnableAutoConfiguration注解
+* main方法
+
+### 运行示例
+
+
+
+
+
+
+
+
+
+
+
 
 * 
