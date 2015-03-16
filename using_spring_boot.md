@@ -120,6 +120,7 @@ Starter POMs是可以包含到应用中的一个方便的依赖关系描述符�
 下面的应用程序starters是Spring Boot在`org.springframework.boot`组下提供的：
 
 **表 13.1. Spring Boot application starters** 
+
 |名称|描述|
 |------|:-----|
 |spring-boot-starter|核心Spring Boot starter，包括自动配置支持，日志和YAML|
