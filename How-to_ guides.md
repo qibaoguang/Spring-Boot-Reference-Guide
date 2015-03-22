@@ -15,14 +15,14 @@ Spring Boot自动配置总是尝试尽最大努力去做正确的事，但有时
 在每个Spring Boot `ApplicationContext`中都存在一个相当有用的`ConditionEvaluationReport`。如果开启`DEBUG`日志输出，你将会看到它。如果你使用`spring-boot-actuator`，则会有一个`autoconfig`的端点，它将以JSON形式渲染该报告。可以使用它调试应用程序，并能查看Spring Boot运行时都添加了哪些特性（及哪些没添加）。
 
 通过查看源码和javadoc可以获取更多问题的答案。以下是一些经验：
-- 查找名为`*AutoConfiguration`的类并阅读源码，特别是`@Conditional*`注解，这可以帮你找出它们启用哪些特性及何时启用。
+1. 查找名为`*AutoConfiguration`的类并阅读源码，特别是`@Conditional*`注解，这可以帮你找出它们启用哪些特性及何时启用。
 将`--debug`添加到命令行或添加系统属性`-Ddebug`可以在控制台查看日志，该日志会记录你的应用中所有自动配置的决策。在一个运行的Actuator app中，通过查看`autoconfig`端点（`/autoconfig`或等效的JMX）可以获取相同信息。
-- 查找是`@ConfigurationProperties`的类（比如[ServerProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/web/ServerProperties.java)）并看下有哪些可用的外部配置选项。`@ConfigurationProperties`类有一个用于充当外部配置前缀的`name`属性，因此`ServerProperties`的值为`prefix="server"`，它的配置属性有`server.port`，`server.address`等。在运行的Actuator应用中可以查看`configprops`端点。
-- 查看使用`RelaxedEnvironment`明确地将配置从`Environment`暴露出去。它经常会使用一个前缀。
-- 查看`@Value`注解，它直接绑定到`Environment`。相比`RelaxedEnvironment`，这种方式稍微缺乏灵活性，但它也允许松散的绑定，特别是OS环境变量（所以`CAPITALS_AND_UNDERSCORES`是`period.separated`的同义词）。
-- 查看`@ConditionalOnExpression`注解，它根据SpEL表达式的结果来开启或关闭特性，通常使用解析自`Environment`的占位符进行计算。
+2. 查找是`@ConfigurationProperties`的类（比如[ServerProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/web/ServerProperties.java)）并看下有哪些可用的外部配置选项。`@ConfigurationProperties`类有一个用于充当外部配置前缀的`name`属性，因此`ServerProperties`的值为`prefix="server"`，它的配置属性有`server.port`，`server.address`等。在运行的Actuator应用中可以查看`configprops`端点。
+3. 查看使用`RelaxedEnvironment`明确地将配置从`Environment`暴露出去。它经常会使用一个前缀。
+4. 查看`@Value`注解，它直接绑定到`Environment`。相比`RelaxedEnvironment`，这种方式稍微缺乏灵活性，但它也允许松散的绑定，特别是OS环境变量（所以`CAPITALS_AND_UNDERSCORES`是`period.separated`的同义词）。
+5. 查看`@ConditionalOnExpression`注解，它根据SpEL表达式的结果来开启或关闭特性，通常使用解析自`Environment`的占位符进行计算。
 
-* 启动前自定义Environment或ApplicationContext
+6. 启动前自定义Environment或ApplicationContext
 
 每个`SpringApplication`都有`ApplicationListeners`和`ApplicationContextInitializers`，用于自定义上下文（context）或环境(environment)。Spring Boot从`META-INF/spring.factories`下加载很多这样的内部使用的自定义。有很多方法可以注册其他的自定义：
 
@@ -153,8 +153,113 @@ Spring Boot在运行时将来自application.properties（或.yml）的外部属�
 
 ### 内嵌的servlet容器
 
+* 为应用添加Servlet，Filter或ServletContextListener
 
+Servlet规范支持的Servlet，Filter，ServletContextListener和其他监听器可以作为`@Bean`定义添加到你的应用中。需要格外小心的是，它们不会引起太多的其他beans的热初始化，因为在应用生命周期的早期它们已经被安装到容器里了（比如，让它们依赖你的DataSource或JPA配置就不是一个好主意）。你可以通过延迟初始化它们到第一次使用而不是初始化时来突破该限制。
 
+在Filters和Servlets的情况下，你也可以通过添加一个`FilterRegistrationBean`或`ServletRegistrationBean`代替或以及底层的组件来添加映射（mappings）和初始化参数。
+
+* 禁止注册Servlet或Filter
+
+正如[以上讨论](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#howto-add-a-servlet-filter-or-servletcontextlistener)的任何Servlet或Filter beans将被自动注册到servlet容器中。为了禁止注册一个特殊的Filter或Servlet bean，可以为它创建一个注册bean，然后禁用该bean。例如：
+```java
+@Bean
+public FilterRegistrationBean registration(MyFilter filter) {
+    FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+    registration.setEnabled(false);
+    return registration;
+}
+```
+
+* 改变HTTP端口
+
+在一个单独的应用中，主HTTP端口默认为8080，但可以使用`server.port`设置（比如，在application.properties中或作为一个系统属性）。由于`Environment`值的宽松绑定，你也可以使用`SERVER_PORT`（比如，作为一个OS环境变）。
+
+为了完全关闭HTTP端点，但仍创建一个WebApplicationContext，你可以设置`server.port=-1`（测试时可能有用）。
+
+想获取更多详情可查看'Spring Boot特性'章节的[Section 26.3.3, “Customizing embedded servlet containers”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-customizing-embedded-containers)，或[ServerProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/web/ServerProperties.java)源码。
+
+* 使用随机未分配的HTTP端口
+
+想扫描一个未使用的端口（为了防止冲突使用OS本地端口）可以使用`server.port=0`。
+
+* 发现运行时的HTTP端口
+
+你可以通过日志输出或它的EmbeddedServletContainer的EmbeddedWebApplicationContext获取服务器正在运行的端口。获取和确认服务器已经初始化的最好方式是添加一个`ApplicationListener<EmbeddedServletContainerInitializedEvent>`类型的`@Bean`，然后当事件发布时将容器pull出来。
+
+使用`@WebIntegrationTests`的一个有用实践是设置`server.port=0`，然后使用`@Value`注入实际的（'local'）端口。例如：
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = SampleDataJpaApplication.class)
+@WebIntegrationTest("server.port:0")
+public class CityRepositoryIntegrationTests {
+
+    @Autowired
+    EmbeddedWebApplicationContext server;
+
+    @Value("${local.server.port}")
+    int port;
+
+    // ...
+
+}
+```
+* 配置SSL
+
+SSL能够以声明方式进行配置，一般通过在application.properties或application.yml设置各种各样的`server.ssl.*`属性。例如：
+```json
+server.port = 8443
+server.ssl.key-store = classpath:keystore.jks
+server.ssl.key-store-password = secret
+server.ssl.key-password = another-secret
+```
+获取所有支持的配置详情可查看[Ssl](http://github.com/spring-projects/spring-boot/tree/master/spring-boot/src/main/java/org/springframework/boot/context/embedded/Ssl.java)。
+
+**注**：Tomcat要求key存储（如果你正在使用一个可信存储）能够直接在文件系统上访问，即它不能从一个jar文件内读取。Jetty和Undertow没有该限制。
+
+使用类似于以上示例的配置意味着该应用将不在支持端口为8080的普通HTTP连接。Spring Boot不支持通过application.properties同时配置HTTP连接器和HTTPS连接器。如果你两个都想要，那就需要以编程的方式配置它们中的一个。推荐使用application.properties配置HTTPS，因为HTTP连接器是两个中最容易以编程方式进行配置的。获取示例可查看[spring-boot-sample-tomcat-multi-connectors](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples/spring-boot-sample-tomcat-multi-connectors)示例项目。
+
+* 配置Tomcat
+
+通常你可以遵循[Section 63.7, “Discover built-in options for external properties”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#howto-discover-build-in-options-for-external-properties)关于`@ConfigurationProperties`（这里主要的是`ServerProperties`）的建议，但也看下`EmbeddedServletContainerCustomizer`和各种你可以添加的Tomcat-specific的`*Customizers`。
+
+Tomcat APIs相当丰富，一旦获取到`TomcatEmbeddedServletContainerFactory`，你就能够以多种方式修改它。或核心选择是添加你自己的`TomcatEmbeddedServletContainerFactory`。
+
+* 启用Tomcat的多连接器（Multiple Connectors）
+
+你可以将一个`org.apache.catalina.connector.Connector`添加到`TomcatEmbeddedServletContainerFactory`，这就能够允许多连接器，比如HTTP和HTTPS连接器：
+```java
+@Bean
+public EmbeddedServletContainerFactory servletContainer() {
+    TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
+    tomcat.addAdditionalTomcatConnectors(createSslConnector());
+    return tomcat;
+}
+
+private Connector createSslConnector() {
+    Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
+    Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
+    try {
+        File keystore = new ClassPathResource("keystore").getFile();
+        File truststore = new ClassPathResource("keystore").getFile();
+        connector.setScheme("https");
+        connector.setSecure(true);
+        connector.setPort(8443);
+        protocol.setSSLEnabled(true);
+        protocol.setKeystoreFile(keystore.getAbsolutePath());
+        protocol.setKeystorePass("changeit");
+        protocol.setTruststoreFile(truststore.getAbsolutePath());
+        protocol.setTruststorePass("changeit");
+        protocol.setKeyAlias("apitester");
+        return connector;
+    }
+    catch (IOException ex) {
+        throw new IllegalStateException("can't access keystore: [" + "keystore"
+                + "] or truststore: [" + "keystore" + "]", ex);
+    }
+}
+
+```
 
 
 
