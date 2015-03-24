@@ -258,9 +258,66 @@ private Connector createSslConnector() {
                 + "] or truststore: [" + "keystore" + "]", ex);
     }
 }
-
 ```
+* 在前端代理服务器后使用Tomcat
 
+Spring Boot将自动配置Tomcat的`RemoteIpValve`，如果你启用它的话。这允许你透明地使用标准的`x-forwarded-for`和`x-forwarded-proto`头，很多前端代理服务器都会添加这些头信息（headers）。通过将这些属性中的一个或全部设置为非空的内容来开启该功能（它们是大多数代理约定的值，如果你只设置其中的一个，则另一个也会被自动设置）。
+```java
+server.tomcat.remote_ip_header=x-forwarded-for
+server.tomcat.protocol_header=x-forwarded-proto
+```
+如果你的代理使用不同的头部（headers），你可以通过向application.properties添加一些条目来自定义该值的配置，比如：
+```java
+server.tomcat.remote_ip_header=x-your-remote-ip-header
+server.tomcat.protocol_header=x-your-protocol-header
+```
+该值也可以配置为一个默认的，能够匹配信任的内部代理的正则表达式。默认情况下，受信任的IP包括 10/8, 192.168/16, 169.254/16 和 127/8。可以通过向application.properties添加一个条目来自定义该值的配置，比如：
+```java
+server.tomcat.internal_proxies=192\\.168\\.\\d{1,3}\\.\\d{1,3}
+```
+**注**：只有在你使用一个properties文件作为配置的时候才需要双反斜杠。如果你使用YAML，单个反斜杠就足够了，`192\.168\.\d{1,3}\.\d{1,3}`和上面的等价。
+
+另外，通过在一个`TomcatEmbeddedServletContainerFactory` bean中配置和添加`RemoteIpValve`，你就可以完全控制它的设置了。
+
+* 使用Jetty替代Tomcat
+
+Spring Boot starters（特别是spring-boot-starter-web）默认都是使用Tomcat作为内嵌容器的。你需要排除那些Tomcat的依赖并包含Jetty的依赖。为了让这种处理尽可能简单，Spring Boot将Tomcat和Jetty的依赖捆绑在一起，然后提供单独的starters。
+
+Maven示例：
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jetty</artifactId>
+</dependency>
+```
+Gradle示例：
+```gradle
+configurations {
+    compile.exclude module: "spring-boot-starter-tomcat"
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web:1.3.0.BUILD-SNAPSHOT")
+    compile("org.springframework.boot:spring-boot-starter-jetty:1.3.0.BUILD-SNAPSHOT")
+    // ...
+}
+```
+* 配置Jetty
+
+
+
+* 使用Undertow替代Tomcat
+* 配置Undertow
 
 
 
