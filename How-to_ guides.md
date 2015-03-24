@@ -314,16 +314,146 @@ dependencies {
 ```
 * 配置Jetty
 
-
+通常你可以遵循[Section 63.7, “Discover built-in options for external properties”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#howto-discover-build-in-options-for-external-properties)关于`@ConfigurationProperties`（此处主要是ServerProperties）的建议，但也要看下`EmbeddedServletContainerCustomizer`。Jetty API相当丰富，一旦获取到`JettyEmbeddedServletContainerFactory`，你就可以使用很多方式修改它。或更彻底地就是添加你自己的`JettyEmbeddedServletContainerFactory`。
 
 * 使用Undertow替代Tomcat
+
+使用Undertow替代Tomcat和[使用Jetty替代Tomcat](https://github.com/qibaoguang/Spring-Boot-Reference-Guide/edit/master/How-to_%20guides.md)非常类似。你需要排除Tomat依赖，并包含Undertow starter。
+
+Maven示例：
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-undertow</artifactId>
+</dependency>
+```
+Gradle示例：
+```gradle
+configurations {
+    compile.exclude module: "spring-boot-starter-tomcat"
+}
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-web:1.3.0.BUILD-SNAPSHOT")
+    compile 'org.springframework.boot:spring-boot-starter-undertow:1.3.0.BUILD-SNAPSHOT")
+    // ...
+}
+
+```
 * 配置Undertow
 
+通常你可以遵循[Section 63.7, “Discover built-in options for external properties”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#howto-discover-build-in-options-for-external-properties)关于`@ConfigurationProperties`（此处主要是ServerProperties和ServerProperties.Undertow），但也要看下`EmbeddedServletContainerCustomizer`。一旦获取到`UndertowEmbeddedServletContainerFactory`，你就可以使用一个`UndertowBuilderCustomizer`修改Undertow的配置以满足你的需求。或更彻底地就是添加你自己的`UndertowEmbeddedServletContainerFactory`。
+
+* 启用Undertow的多监听器（Multiple Listeners）
+
+往`UndertowEmbeddedServletContainerFactory`添加一个`UndertowBuilderCustomizer`，然后添加一个监听者到`Builder`：
+```java
+@Bean
+public UndertowEmbeddedServletContainerFactory embeddedServletContainerFactory() {
+    UndertowEmbeddedServletContainerFactory factory = new UndertowEmbeddedServletContainerFactory();
+    factory.addBuilderCustomizers(new UndertowBuilderCustomizer() {
+
+        @Override
+        public void customize(Builder builder) {
+            builder.addHttpListener(8080, "0.0.0.0");
+        }
+
+    });
+    return factory;
+}
+```
+* 使用Tomcat7
+
+Tomcat7可用于Spring Boot，但默认使用的是Tomcat8。如果不能使用Tomcat8（例如，你使用的是Java1.6），你需要改变classpath去引用Tomcat7。
+
+- 通过Maven使用Tomcat7
+
+如果正在使用starter pom和parent，你只需要改变Tomcat的version属性，比如，对于一个简单的webapp或service：
+```xml
+<properties>
+    <tomcat.version>7.0.59</tomcat.version>
+</properties>
+<dependencies>
+    ...
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    ...
+</dependencies>
+```
+- 通过Gradle使用Tomcat7
+
+你可以通过设置`tomcat.version`属性改变Tomcat的版本：
+```gradle
+ext['tomcat.version'] = '7.0.59'
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-web'
+}
+```
+* 使用Jetty8
+
+Jetty8可用于Spring Boot，但默认使用的是Jetty9。如果不能使用Jetty9（例如，因为你使用的是Java1.6），你只需改变classpath去引用Jetty8。你也需要排除Jetty的WebSocket相关的依赖。
+
+- 通过Maven使用Jetty8
+
+如果正在使用starter pom和parent，你只需添加Jetty starter，去掉WebSocket依赖，并改变version属性，比如，对于一个简单的webapp或service：
+```xml
+<properties>
+    <jetty.version>8.1.15.v20140411</jetty.version>
+    <jetty-jsp.version>2.2.0.v201112011158</jetty-jsp.version>
+</properties>
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-tomcat</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jetty</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>org.eclipse.jetty.websocket</groupId>
+                <artifactId>*</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+</dependencies>
+```
+- 通过Gradle使用Jetty8
+
+你可以设置`jetty.version`属性并排除相关的WebSocket依赖，比如对于一个简单的webapp或service：
+```gradle
+ext['jetty.version'] = '8.1.15.v20140411'
+dependencies {
+    compile ('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+    compile ('org.springframework.boot:spring-boot-starter-jetty') {
+        exclude group: 'org.eclipse.jetty.websocket'
+    }
+}
+```
+* 使用@ServerEndpoint创建WebSocket端点
 
 
 
-
-
-
+* 启用HTTP响应压缩
 
 
