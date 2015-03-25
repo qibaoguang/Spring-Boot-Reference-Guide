@@ -452,8 +452,56 @@ dependencies {
 ```
 * 使用@ServerEndpoint创建WebSocket端点
 
-
+如果想在一个使用内嵌容器的Spring Boot应用中使用@ServerEndpoint，你需要声明一个单独的ServerEndpointExporter @Bean：
+```java
+@Bean
+public ServerEndpointExporter serverEndpointExporter() {
+    return new ServerEndpointExporter();
+}
+```
+该bean将用底层的WebSocket容器注册任何的被`@ServerEndpoint`注解的beans。当部署到一个单独的servlet容器时，该角色将被一个servlet容器初始化方法履行，ServerEndpointExporter bean也就不是必需的了。
 
 * 启用HTTP响应压缩
+
+Spring Boot提供两种启用HTTP压缩的机制;一种是Tomcat特有的，另一种是使用一个filter，可以配合Jetty，Tomcat和Undertow。
+
+- 启用Tomcat的HTTP响应压缩
+
+Tomcat对HTTP响应压缩提供内建支持。默认是禁用的，但可以通过application.properties轻松的启用：
+```java
+server.tomcat.compression: on
+```
+当设置为`on`时，Tomcat将压缩响应的长度至少为2048字节。你可以配置一个整型值来设置该限制而不只是`on`，比如：
+```java
+server.tomcat.compression: 4096
+```
+默认情况下，Tomcat只压缩某些MIME类型的响应（text/html，text/xml和text/plain）。你可以使用`server.tomcat.compressableMimeTypes`属性进行自定义，比如：
+```java
+server.tomcat.compressableMimeTypes=application/json,application/xml
+```
+- 使用GzipFilter开启HTTP响应压缩
+
+如果你正在使用Jetty或Undertow，或想要更精确的控制HTTP响应压缩，Spring Boot为Jetty的GzipFilter提供自动配置。虽然该过滤器是Jetty的一部分，但它也兼容Tomcat和Undertow。想要启用该过滤器，只需简单的为你的应用添加`org.eclipse.jetty:jetty-servlets`依赖。
+
+GzipFilter可以使用`spring.http.gzip.*`属性进行配置。具体参考[GzipFilterProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/web/GzipFilterProperties.java)。
+
+### Spring MVC
+
+* 编写一个JSON REST服务
+* 编写一个XML REST服务
+* 自定义Jackson ObjectMapper
+* 自定义@ResponseBody渲染
+* 处理Multipart文件上传
+* 关闭Spring MVC DispatcherServlet
+* 关闭默认的MVC配置
+* 自定义ViewResolvers
+
+### 日志
+
+* 配置Logback
+* 配置Log4j
+* 使用YAML或JSON配置Log4j2
+
+### 数据访问
 
 
