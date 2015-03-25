@@ -488,6 +488,22 @@ GzipFilter可以使用`spring.http.gzip.*`属性进行配置。具体参考[Gzip
 ### Spring MVC
 
 * 编写一个JSON REST服务
+
+在Spring Boot应用中，任何Spring `@RestController`默认应该渲染为JSON响应，只要classpath下存在Jackson2。例如：
+```java
+@RestController
+public class MyController {
+
+    @RequestMapping("/thing")
+    public MyThing thing() {
+            return new MyThing();
+    }
+
+}
+```
+只要MyThing能够通过Jackson2序列化（比如，一个标准的POJO或Groovy对象），[localhost:8080/thing](http://localhost:8080/thing)默认响应一个JSON表示。有时在一个浏览器中你可能看到XML响应因为浏览器倾向于发送XML
+响应头。
+
 * 编写一个XML REST服务
 * 自定义Jackson ObjectMapper
 * 自定义@ResponseBody渲染
