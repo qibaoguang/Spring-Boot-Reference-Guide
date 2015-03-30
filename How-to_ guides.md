@@ -605,12 +605,75 @@ WebMvcAutoConfiguration将会为你的上下文添加以下ViewResolvers：
 
 ### 日志
 
+Spring Boot除了commons-logging  API外没有其他强制性的日志依赖，你有很多可选的日志实现。想要使用[Logback](http://logback.qos.ch/)，你需要包含它，及一些对classpath下commons-logging的绑定。最简单的方式是通过依赖`spring-boot-starter-logging`的starter pom。对于一个web应用程序，你只需添加`spring-boot-starter-web`依赖，因为它依赖于logging starter。例如，使用Maven：
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+```
+Spring Boot有一个LoggingSystem抽象，用于尝试通过classpath上下文配置日志系统。如果Logback可用，则首选它。如果你唯一需要做的就是设置不同日志的级别，那可以通过在application.properties中使用`logging.level`前缀实现，比如：
+```java
+logging.level.org.springframework.web: DEBUG
+logging.level.org.hibernate: ERROR
+```
+你也可以使用`logging.file`设置日志文件的位置（除控制台之外，默认会输出到控制台）。
+
+想要对日志系统进行更细粒度的配置，你需要使用正在说的LoggingSystem支持的原生配置格式。默认情况下，Spring Boot从系统的默认位置加载原生配置（比如对于Logback为`classpath:logback.xml`），但你可以使用`logging.config`属性设置配置文件的位置。
+
 * 配置Logback
+
+如果你将一个logback.xml放到classpath根目录下，那它将会被从这加载。Spring Boot提供一个默认的基本配置，如果你只是设置日志级别，那你可以包含它，比如：
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <logger name="org.springframework.web" level="DEBUG"/>
+</configuration>
+```
+如果查看spring-boot jar包中的默认logback.xml，你将会看到LoggingSystem为你创建的很多有用的系统属性，比如：
+- ${PID}，当前进程id
+- ${LOG_FILE}，如果在Boot外部配置中设置了`logging.file`
+- ${LOG_PATH}，如果设置了`logging.path`（表示日志文件产生的目录）
+
+Spring Boot也提供使用自定义的Logback转换器在控制台上输出一些漂亮的彩色ANSI日志信息（不是日志文件）。具体参考默认的`base.xml`配置。
+
+如果Groovy在classpath下，你也可以使用logback.groovy配置Logback。
+
 * 配置Log4j
+
+Spring Boot也支持[Log4j](http://logging.apache.org/log4j/1.2)或[Log4j 2](http://logging.apache.org/log4j/2.x)作为日志配置，但只有在它们中的某个在classpath下存在的情况。如果你正在使用starter poms进行依赖装配，这意味着你需要排除Logback，然后包含你选择的Log4j版本。如果你不使用starter poms，那除了你选择的Log4j版本外还要提供commons-logging（至少）。
+
+最简单的方式可能就是通过starter poms，尽管它需要排除一些依赖，比如，在Maven中：
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-log4j</artifactId>
+</dependency>
+```
+想要使用Log4j 2，只需要依赖`spring-boot-starter-log4j2`而不是`spring-boot-starter-log4j`。
+
+**注**：使用Log4j各版本的starters都会收集好依赖以满足common logging的要求（比如，Tomcat中使用`java.util.logging`，但使用Log4j或 Log4j 2作为输出）。具体查看Actuator Log4j或Log4j 2的示例，了解如何将它用于实战。
+
 * 使用YAML或JSON配置Log4j2
 
-### 数据访问
+除了它的默认XML配置格式，Log4j 2也支持YAML和JSON配置文件。想要使用其他配置文件格式来配置Log4j 2，你需要添加合适的依赖到classpath。为了使用YAML，你需要添加`com.fasterxml.jackson.dataformat:jackson-dataformat-yaml`依赖，Log4j 2将查找名称为`log4j2.yaml`或`log4j2.yml`的配置文件。为了使用JSON，你需要添加`com.fasterxml.jackson.core:jackson-databind`依赖，Log4j 2将查找名称为`log4j2.json`或`log4j2.jsn`的配置文件
 
+### 数据访问
 
 
 
