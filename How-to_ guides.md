@@ -675,5 +675,87 @@ Spring Boot也支持[Log4j](http://logging.apache.org/log4j/1.2)或[Log4j 2](htt
 
 ### 数据访问
 
+* 配置一个数据源
+
+想要覆盖默认的设置只需要定义一个你自己的DataSource类型的`@Bean`。Spring Boot提供一个工具构建类DataSourceBuilder，可用来创建一个标准的DataSource（如果它处于classpath下），或者仅创建你自己的DataSource，然后将它和在[Section 23.7.1, “Third-party configuration”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-external-config-3rd-party-configuration)解释的一系列Environment属性绑定。
+
+比如：
+```java
+@Bean
+@ConfigurationProperties(prefix="datasource.mine")
+public DataSource dataSource() {
+    return new FancyDataSource();
+}
+```
+```java
+datasource.mine.jdbcUrl=jdbc:h2:mem:mydb
+datasource.mine.user=sa
+datasource.mine.poolSize=30
+```
+具体参考'Spring Boot特性'章节中的[Section 28.1, “Configure a DataSource”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-configure-datasource)和[DataSourceAutoConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/jdbc/DataSourceAutoConfiguration.java)类源码。
+
+* 配置两个数据源
+
+创建多个数据源和创建第一个工作都是一样的。如果使用针对JDBC或JPA的默认自动配置，你可能想要将其中一个设置为`@Primary`（然后它就能被任何`@Autowired`注入获取）。
+```java
+@Bean
+@Primary
+@ConfigurationProperties(prefix="datasource.primary")
+public DataSource primaryDataSource() {
+    return DataSourceBuilder.create().build();
+}
+
+@Bean
+@ConfigurationProperties(prefix="datasource.secondary")
+public DataSource secondaryDataSource() {
+    return DataSourceBuilder.create().build();
+}
+```
+* 使用Spring Data仓库
+
+Spring Data可以为你的`@Repository`接口创建各种风格的实现。Spring Boot会为你处理所有事情，只要那些`@Repositories`接口跟你的`@EnableAutoConfiguration`类处于相同的包（或子包）。
+
+对于很多应用来说，你需要做的就是将正确的Spring Data依赖添加到classpath下（对于JPA有一个`spring-boot-starter-data-jpa`，对于Mongodb有一个`spring-boot-starter-data-mongodb`），创建一些repository接口来处理`@Entity`对象。具体参考[JPA sample](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples/spring-boot-sample-data-jpa)或[Mongodb sample](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples/spring-boot-sample-data-mongodb)。
+
+Spring Boot会基于它找到的`@EnableAutoConfiguration`来尝试猜测你的`@Repository`定义的位置。想要获取更多控制，可以使用`@EnableJpaRepositories`注解（来自Spring Data JPA）。
+
+* 从Spring配置分离`@Entity`定义
+
+Spring Boot会基于它找到的`@EnableAutoConfiguration`来尝试猜测你的`@Entity`定义的位置。想要获取更多控制，你可以使用`@EntityScan`注解，比如：
+```java
+@Configuration
+@EnableAutoConfiguration
+@EntityScan(basePackageClasses=City.class)
+public class Application {
+
+    //...
+
+}
+```
+* 配置JPA属性
+
+Spring Data JPA已经提供了一些独立的配置选项（比如，针对SQL日志），并且Spring Boot会暴露它们，针对hibernate的外部配置属性也更多些。最常见的选项如下：
+```java
+spring.jpa.hibernate.ddl-auto: create-drop
+spring.jpa.hibernate.naming_strategy: org.hibernate.cfg.ImprovedNamingStrategy
+spring.jpa.database: H2
+spring.jpa.show-sql: true
+```
+（由于宽松的数据绑定策略，连字符或下划线作为属性keys作用应该是等效的）`ddl-auto`配置是个特殊情况，它有不同的默认设置，这取决于你是否使用一个内嵌数据库（create-drop）。当本地EntityManagerFactory被创建时，所有`spring.jpa.properties.*`属性都被作为正常的JPA属性（去掉前缀）传递进去了。
+
+具体参考[HibernateJpaAutoConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaAutoConfiguration.java)和[JpaBaseConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/orm/jpa/JpaBaseConfiguration.java)。
+
+* 使用自定义的EntityManagerFactory
+
+为了完全控制EntityManagerFactory的配置，你需要添加一个名为`entityManagerFactory`的`@Bean`。Spring Boot自动配置会根据是否存在该类型的bean来关闭它的实体管理器（entity manager）。
+
+* 使用两个EntityManagers
+* 使用普通的persistence.xml
+* 使用Spring Data JPA和Mongo仓库
+* 将Spring Data仓库暴露为REST端点
+
+### 数据库初始化
+
+
 
 
