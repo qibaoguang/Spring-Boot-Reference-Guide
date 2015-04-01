@@ -750,12 +750,61 @@ spring.jpa.show-sql: true
 为了完全控制EntityManagerFactory的配置，你需要添加一个名为`entityManagerFactory`的`@Bean`。Spring Boot自动配置会根据是否存在该类型的bean来关闭它的实体管理器（entity manager）。
 
 * 使用两个EntityManagers
+
+即使默认的EntityManagerFactory工作的很好，你也需要定义一个新的EntityManagerFactory，因为一旦出现第二个该类型的bean，默认的将会被关闭。为了轻松的实现该操作，你可以使用Spring Boot提供的EntityManagerBuilder，或者如果你喜欢的话可以直接使用来自Spring ORM的LocalContainerEntityManagerFactoryBean。
+
+示例：
+```java
+// add two data sources configured as above
+
+@Bean
+public LocalContainerEntityManagerFactoryBean customerEntityManagerFactory(
+        EntityManagerFactoryBuilder builder) {
+    return builder
+            .dataSource(customerDataSource())
+            .packages(Customer.class)
+            .persistenceUnit("customers")
+            .build();
+}
+
+@Bean
+public LocalContainerEntityManagerFactoryBean orderEntityManagerFactory(
+        EntityManagerFactoryBuilder builder) {
+    return builder
+            .dataSource(orderDataSource())
+            .packages(Order.class)
+            .persistenceUnit("orders")
+            .build();
+}
+```
+上面的配置靠自己基本可以运行。想要完成作品你也需要为两个EntityManagers配置TransactionManagers。其中的一个会被Spring Boot默认的JpaTransactionManager获取，如果你将它标记为`@Primary`。另一个需要显式注入到一个新实例。或你可以使用一个JTA事物管理器生成它两个。
+
 * 使用普通的persistence.xml
+
+Spring不要求使用XML配置JPA提供者（provider），并且Spring Boot假定你想要充分利用该特性。如果你倾向于使用`persistence.xml`，那你需要定义你自己的id为'entityManagerFactory'的LocalEntityManagerFactoryBean类型的`@Bean`，并在那设置持久化单元的名称。
+
+默认设置可查看[JpaBaseConfiguration](https://github.com/spring-projects/spring-boot/blob/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/orm/jpa/JpaBaseConfiguration.java)
+
 * 使用Spring Data JPA和Mongo仓库
+
+Spring Data JPA和Spring Data Mongo都能自动为你创建Repository实现。如果它们同时出现在classpath下，你可能需要添加额外的配置来告诉Spring Boot你想要哪个（或两个）为你创建仓库。最明确地方式是使用标准的Spring Data `@Enable*Repositories`，然后告诉它你的Repository接口的位置（此处*即可以是Jpa，也可以是Mongo，或者两者都是）。
+
+这里也有`spring.data.*.repositories.enabled`标志，可用来在外部配置中开启或关闭仓库的自动配置。这在你想关闭Mongo仓库，但仍旧使用自动配置的MongoTemplate时非常有用。
+
+相同的障碍和特性也存在于其他自动配置的Spring Data仓库类型（Elasticsearch, Solr）。只需要改变对应注解的名称和标志。
+
 * 将Spring Data仓库暴露为REST端点
+
+Spring Data REST能够将Repository的实现暴露为REST端点，只要该应用启用Spring MVC。
+
+Spring Boot暴露一系列来自`spring.data.rest`命名空间的有用属性来定制化[RepositoryRestConfiguration](http://docs.spring.io/spring-data/rest/docs/current/api/org/springframework/data/rest/core/config/RepositoryRestConfiguration.html)。如果需要提供其他定制，你可以创建一个继承自SpringBootRepositoryRestMvcConfiguration的`@Configuration`类。该类功能和RepositoryRestMvcConfiguration相同，但允许你继续使用`spring.data.rest.*`属性。
 
 ### 数据库初始化
 
+一个数据库可以使用不同的方式进行初始化，这取决于你的技术栈。或者你可以手动完成该任务，只要数据库是单独的过程。
 
-
+* 使用JPA初始化数据库
+* 使用Hibernate初始化数据库
+* 使用Spring JDBC初始化数据库
+* 初始化Spring Batch数据库
 
