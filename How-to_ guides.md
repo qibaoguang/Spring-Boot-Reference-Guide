@@ -804,6 +804,12 @@ Spring Boot暴露一系列来自`spring.data.rest`命名空间的有用属性来
 一个数据库可以使用不同的方式进行初始化，这取决于你的技术栈。或者你可以手动完成该任务，只要数据库是单独的过程。
 
 * 使用JPA初始化数据库
+
+JPA有个生成DDL的特性，这些可以设置为在数据库启动时运行。这可以通过两个外部属性进行控制：
+
+- `spring.jpa.generate-ddl`（boolean）控制该特性的关闭和开启，跟实现者没关系
+- `spring.jpa.hibernate.ddl-auto`（enum）是一个Hibernate特性，用于更细力度的控制该行为。更多详情参考以下内容。
+
 * 使用Hibernate初始化数据库
 * 使用Spring JDBC初始化数据库
 * 初始化Spring Batch数据库
