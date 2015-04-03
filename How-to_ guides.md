@@ -811,6 +811,18 @@ JPA有个生成DDL的特性，这些可以设置为在数据库启动时运行�
 - `spring.jpa.hibernate.ddl-auto`（enum）是一个Hibernate特性，用于更细力度的控制该行为。更多详情参考以下内容。
 
 * 使用Hibernate初始化数据库
+
+你可以显式设置`spring.jpa.hibernate.ddl-auto`，标准的Hibernate属性值有`none`，`validate`，`update`，`create`，`create-drop`。Spring Boot根据你的数据库是否为内嵌数据库来选择相应的默认值，如果是内嵌型的则默认值为`create-drop`，否则为`none`。通过查看Connection类型可以检查是否为内嵌型数据库，hsqldb，h2和derby是内嵌的，其他都不是。当从内存数据库迁移到一个真正的数据库时，你需要当心，在新的平台中不能对数据库表和数据是否存在进行臆断。你也需要显式设置`ddl-auto`，或使用其他机制初始化数据库。
+
+此外，启动时处于classpath根目录下的import.sql文件会被执行。这在demos或测试时很有用，但在生产环境中你可能不期望这样。这是Hibernate的特性，和Spring没有一点关系。
+
 * 使用Spring JDBC初始化数据库
+
+Spring JDBC有一个DataSource初始化特性。Spring Boot默认启用了该特性，并从标准的位置schema.sql和data.sql（位于classpath根目录）加载SQL。此外，Spring Boot将加载`schema-${platform}.sql`和`data-${platform}.sql`文件（如果存在），在这里platform是`spring.datasource.platform`的值，比如，你可以将它设置为数据库的供应商名称（hsqldb, h2, oracle, mysql, postgresql等）。Spring Boot默认启用Spring JDBC初始化快速失败特性，所以如果脚本导致异常产生，那应用程序将启动失败。脚本的位置可以通过设置`spring.datasource.schema`和`spring.datasource.data`来改变，如果设置`spring.datasource.initialize=false`则哪个位置都不会被处理。
+
+你可以设置`spring.datasource.continueOnError=true`禁用快速失败特性。一旦应用程序成熟并被部署了很多次，那该设置就很有用，因为脚本可以充当"可怜人的迁移"-例如，插入失败时意味着数据已经存在，也就没必要阻止应用继续运行。
+
+如果你想要在一个JPA应用中使用schema.sql，那如果Hibernate试图创建相同的表，`ddl-auto=create-drop`将导致错误产生。为了避免那些错误，可以将`ddl-auto`设置为“”（推荐）或“none”。不管是否使用`ddl-auto=create-drop`，你总可以使用data.sql初始化新数据。
+
 * 初始化Spring Batch数据库
 
