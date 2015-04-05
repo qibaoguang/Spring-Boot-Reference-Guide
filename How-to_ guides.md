@@ -826,3 +826,30 @@ Spring JDBC有一个DataSource初始化特性。Spring Boot默认启用了该特
 
 * 初始化Spring Batch数据库
 
+如果你正在使用Spring Batch，那么它会为大多数的流行数据库平台预装SQL初始化脚本。Spring Boot会检测你的数据库类型，并默认执行那些脚本，在这种情况下将关闭快速失败特性（错误被记录但不会阻止应用启动）。这是因为那些脚本是可信任的，通常不会包含bugs，所以错误会被忽略掉，并且对错误的忽略可以让脚本具有幂等性。你可以使用`spring.batch.initializer.enabled=false`显式关闭初始化功能。
+
+* 使用一个高级别的数据迁移工具
+
+Spring Boot跟高级别的数据迁移工具[Flyway](http://flywaydb.org/)(基于SQL)和[Liquibase](http://www.liquibase.org/)(XML)工作的很好。通常我们倾向于Flyway，因为它一眼看去好像很容易，另外它通常不需要平台独立：一般一个或至多需要两个平台。
+
+- 启动时执行Flyway数据库迁移
+
+想要在启动时自动运行Flyway数据库迁移，需要将`org.flywaydb:flyway-core`添加到你的classpath下。
+
+迁移是一些`V<VERSION>__<NAME>.sql`格式的脚本（`<VERSION>`是一个下划线分割的版本号，比如'1'或'2_1'）。默认情况下，它们存放在一个`classpath:db/migration`的文件夹中，但你可以使用`flyway.locations`（一个列表）来改变它。详情可参考flyway-core中的Flyway类，查看一些可用的配置，比如schemas。Spring Boot在[FlywayProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/flyway/FlywayProperties.java)中提供了一个小的属性集，可用于禁止迁移，或关闭位置检测。
+
+默认情况下，Flyway将自动注入（`@Primary`）DataSource到你的上下文，并用它进行数据迁移。如果你想使用一个不同的DataSource，你可以创建一个，并将它标记为`@FlywayDataSource`的`@Bean`-如果你这样做了，且想要两个数据源，记得创建另一个并将它标记为`@Primary`。或者你可以通过在外部配置文件中设置`flyway.[url,user,password]`来使用Flyway的原生DataSource。
+
+这是一个[Flyway示例](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples/spring-boot-sample-flyway)，你可以作为参考。
+
+- 启动时执行Liquibase数据库迁移
+
+想要在启动时自动运行Liquibase数据库迁移，你需要将`org.liquibase:liquibase-core`添加到classpath下。
+
+主改变日志（master change log）默认从`db/changelog/db.changelog-master.yaml`读取，但你可以使用`liquibase.change-log`进行设置。详情查看[LiquibaseProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/liquibase/LiquibaseProperties.java)以获取可用设置，比如上下文，默认的schema等。
+
+这里有个[Liquibase示例](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples/spring-boot-sample-liquibase)可作为参考。
+
+
+
+ 
