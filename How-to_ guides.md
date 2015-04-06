@@ -850,6 +850,38 @@ Spring Boot跟高级别的数据迁移工具[Flyway](http://flywaydb.org/)(基�
 
 这里有个[Liquibase示例](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples/spring-boot-sample-liquibase)可作为参考。
 
+### 批处理应用
+
+* 在启动时执行Spring Batch作业
+
+你可以在上下文的某个地方添加`@EnableBatchProcessing`来启用Spring Batch的自动配置功能。
+
+默认情况下，在启动时它会执行应用的所有作业（Jobs），具体查看[JobLauncherCommandLineRunner](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/batch/JobLauncherCommandLineRunner.java)。你可以通过指定`spring.batch.job.names`（多个作业名以逗号分割）来缩小到一个特定的作业或多个作业。
+
+如果应用上下文包含一个JobRegistry，那么处于`spring.batch.job.names`中的作业将会从registry中查找，而不是从上下文中自动装配。这是复杂系统中常见的一个模式，在这些系统中多个作业被定义在子上下文和注册中心。
+
+具体参考[BatchAutoConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/batch/BatchAutoConfiguration.java)和[@EnableBatchProcessing](https://github.com/spring-projects/spring-batch/blob/master/spring-batch-core/src/main/java/org/springframework/batch/core/configuration/annotation/EnableBatchProcessing.java)。
+
+### 执行器（Actuator）
+
+* 改变HTTP端口或执行器端点的地址
+
+在一个单独的应用中，执行器的HTTP端口默认和主HTTP端口相同。想要让应用监听不同的端口，你可以设置外部属性`management.port`。为了监听一个完全不同的网络地址（比如，你有一个用于管理的内部网络和一个用于用户应用程序的外部网络），你可以将`management.address`设置为一个可用的IP地址，然后将服务器绑定到该地址。
+
+查看[ManagementServerProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/autoconfigure/ManagementServerProperties.java)源码和'Production-ready特性'章节中的[Section 41.3, “Customizing the management server port”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#production-ready-customizing-management-server-port)来获取更多详情。
+
+* 自定义'白标'（whitelabel，可以了解下相关理念）错误页面
+
+Spring Boot安装了一个'whitelabel'错误页面，如果你遇到一个服务器错误（机器客户端消费的是JSON，其他媒体类型则会看到一个具有正确错误码的合乎情理的响应），那就能在客户端浏览器中看到该页面。你可以设置`error.whitelabel.enabled=false`来关闭该功能，但通常你想要添加自己的错误页面来取代whitelabel。确切地说，如何实现取决于你使用的模板技术。例如，你正在使用Thymeleaf，你将添加一个error.html模板。如果你正在使用FreeMarker，那你将添加一个error.ftl模板。通常，你需要的只是一个名称为error的View，和/或一个处理`/error`路径的`@Controller`。除非你替换了一些默认配置，否则你将在你的ApplicationContext中找到一个BeanNameViewResolver，所以一个id为error的`@Bean`可能是完成该操作的一个简单方式。详情参考[ErrorMvcAutoConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/web/ErrorMvcAutoConfiguration.java)。
+
+查看[Error Handling](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-error-handling)章节，了解下如何将处理器（handlers）注册到servlet容器中。
+
+### 安全
+
+
+
+
+
 
 
  
