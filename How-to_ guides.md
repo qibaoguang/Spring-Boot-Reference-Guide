@@ -878,10 +878,54 @@ Spring Boot安装了一个'whitelabel'错误页面，如果你遇到一个服务
 
 ### 安全
 
+* 关闭Spring Boot安全配置
 
+不管你在应用的什么地方定义了一个使用`@EnableWebSecurity`注解的`@Configuration`，它将会关闭Spring Boot中的默认webapp安全设置。想要调整默认值，你可以尝试设置`security.*`属性（具体查看[SecurityProperties](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/security/SecurityProperties.java)和[常见应用属性](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#common-application-properties-security)的SECURITY章节）。
 
+* 改变AuthenticationManager并添加用户账号
 
+如果你提供了一个AuthenticationManager类型的`@Bean`，那么默认的就不会被创建了，所以你可以获得Spring Security可用的全部特性（比如，[不同的认证选项](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#jc-authentication)）。
 
+Spring Security也提供了一个方便的AuthenticationManagerBuilder，可用于构建具有常见选项的AuthenticationManager。在一个webapp中，推荐将它注入到WebSecurityConfigurerAdapter的一个void方法中，比如：
+```java
+@Configuration
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+            auth.inMemoryAuthentication()
+                .withUser("barry").password("password").roles("USER"); // ... etc.
+    }
 
- 
+    // ... other stuff for application security
+}
+```
+如果把它放到一个内部类或一个单独的类中，你将得到最好的结果（也就是不跟很多其他`@Beans`混合在一起将允许你改变实例化的顺序）。[secure web sample](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples/spring-boot-sample-web-secure)是一个有用的参考模板。
+
+如果你遇到了实例化问题（比如，使用JDBC或JPA进行用户详细信息的存储），那将AuthenticationManagerBuilder回调提取到一个GlobalAuthenticationConfigurerAdapter（放到init()方法内以防其他地方也需要authentication manager）可能是个不错的选择，比如：
+```java
+@Configuration
+public class AuthenticationManagerConfiguration extends
+
+    GlobalAuthenticationConfigurerAdapter {
+    @Override
+    public void init(AuthenticationManagerBuilder auth) {
+        auth.inMemoryAuthentication() // ... etc.
+    }
+
+}
+```
+* 当前端使用代理服务器时，启用HTTPS
+
+对于任何应用来说，确保所有的主端点（URL）都只在HTTPS下可用是个重要的苦差事。如果你使用Tomcat作为servlet容器，那Spring Boot如果发现一些环境设置的话，它将自动添加Tomcat自己的RemoteIpValve，你也可以依赖于HttpServletRequest来报告是否请求是安全的（即使代理服务器的downstream处理真实的SSL终端）。这个标准行为取决于某些请求头是否出现（`x-forwarded-for`和`x-forwarded-proto`），这些请求头的名称都是约定好的，所以对于大多数前端和代理都是有效的。
+
+你可以向application.properties添加以下设置里开启该功能，比如：
+```yml
+server.tomcat.remote_ip_header=x-forwarded-for
+server.tomcat.protocol_header=x-forwarded-proto
+```
+（这些属性出现一个就会开启该功能，或者你可以通过添加一个TomcatEmbeddedServletContainerFactory bean自己添加RemoteIpValve）
+
+Spring Security也可以配置成针对所以或某些请求需要一个安全渠道（channel）。想要在一个Spring Boot应用中开启它，你只需将application.properties中的`security.require_ssl`设置为`true`即可。
+
+### 热交换
