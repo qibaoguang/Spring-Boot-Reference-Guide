@@ -929,3 +929,80 @@ server.tomcat.protocol_header=x-forwarded-proto
 Spring Security也可以配置成针对所以或某些请求需要一个安全渠道（channel）。想要在一个Spring Boot应用中开启它，你只需将application.properties中的`security.require_ssl`设置为`true`即可。
 
 ### 热交换
+
+* 重新加载静态内容
+
+Spring Boot有很多用于热加载的选项。使用IDE开发是一个不错的方式，特别是需要调试的时候（所有的现代IDEs都允许重新加载静态资源，通常也支持对变更的Java类进行热交换）。[Maven和Gradle插件](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#build-tool-plugins)也支持命令行下的静态文件热加载。如果你使用其他高级工具编写css/js，并使用外部的css/js编译器，那你就可以充分利用该功能。
+
+* 在不重启容器的情况下重新加载Thymeleaf模板
+
+如果你正在使用Thymeleaf，那就将`spring.thymeleaf.cache`设置为false。查看[ThymeleafAutoConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/thymeleaf/ThymeleafAutoConfiguration.java)可以获取其他Thymeleaf自定义选项。
+
+* 在不重启容器的情况下重新加载FreeMarker模板
+
+如果你正在使用FreeMarker，那就将`spring.freemarker.cache`设置为false。查看[FreeMarkerAutoConfiguration ](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/freemarker/FreeMarkerAutoConfiguration.java)可以获取其他FreeMarker自定义选项。
+
+* 在不重启容器的情况下重新加载Groovy模板
+
+如果你正在使用Groovy模板，那就将`spring.groovy.template.cache`设置为false。查看[GroovyTemplateAutoConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/groovy/template/GroovyTemplateAutoConfiguration.java)可以获取其他Groovy自定义选项。
+
+* 在不重启容器的情况下重新加载Velocity模板
+
+如果你正在使用Velocity，那就将`spring.velocity.cache`设置为false。查看[VelocityAutoConfiguration](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/velocity/VelocityAutoConfiguration.java)可以获取其他Velocity自定义选项。
+
+* 在不重启容器的情况下重新加载Java类
+
+现代IDEs（Eclipse, IDEA等）都支持字节码的热交换，所以如果你做了一个没有影响类或方法签名的改变，它会利索地重新加载并没有任何影响。
+
+[Spring Loaded](https://github.com/spring-projects/spring-loaded)在这方面走的更远，它能够重新加载方法签名改变的类定义。如果对它进行一些自定义配置可以强制ApplicationContext刷新自己（但没有通用的机制来确保这对一个运行中的应用总是安全的，所以它可能只是一个开发时间的技巧）。
+
+- 使用Maven配置Spring Loaded
+
+为了在Maven命令行下使用Spring Loaded，你只需将它作为一个依赖添加到Spring Boot插件声明中即可，比如：
+```xml
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>springloaded</artifactId>
+            <version>1.2.0.RELEASE</version>
+        </dependency>
+    </dependencies>
+</plugin>
+```
+正常情况下，这在Eclipse和IntelliJ中工作的相当漂亮，只要它们有相应的，和Maven默认一致的构建配置（Eclipse m2e对此支持的更好，开箱即用）。
+
+- 使用Gradle和IntelliJ配置Spring Loaded
+
+如果想将Spring Loaded和Gradle，IntelliJ结合起来，那你需要付出代价。默认情况下，IntelliJ将类编译到一个跟Gradle不同的位置，这会导致Spring Loaded监控失败。
+
+为了正确配置IntelliJ，你可以使用`idea` Gradle插件：
+```gradle
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.3.0.BUILD-SNAPSHOT"
+        classpath 'org.springframework:springloaded:1.2.0.RELEASE'
+    }
+}
+
+apply plugin: 'idea'
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/main/")
+    }
+}
+
+// ...
+```
+**注**：IntelliJ必须配置跟命令行Gradle任务相同的Java版本，并且springloaded必须作为一个buildscript依赖被包含进去。
+
+此外，你也可以启用Intellij内部的`Make Project Automatically`，这样不管什么时候只要文件被保存都会自动编译你的代码。
+
+
+
+
