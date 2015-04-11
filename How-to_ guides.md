@@ -1003,6 +1003,85 @@ idea {
 
 此外，你也可以启用Intellij内部的`Make Project Automatically`，这样不管什么时候只要文件被保存都会自动编译你的代码。
 
+### 构建
 
+* 使用Maven自定义依赖版本
 
+如果你使用Maven进行一个直接或间接继承`spring-boot-dependencies`（比如`spring-boot-starter-parent`）的构建，并想覆盖一个特定的第三方依赖，那你可以添加合适的`<properties>`元素。浏览[spring-boot-dependencies](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-dependencies/pom.xml) POM可以获取一个全面的属性列表。例如，想要选择一个不同的slf4j版本，你可以添加以下内容：
+```xml
+<properties>
+    <slf4j.version>1.7.5<slf4j.version>
+</properties>
+```
+**注**：这只在你的Maven项目继承（直接或间接）自`spring-boot-dependencies`才有用。如果你使用`<scope>import</scope>`，将`spring-boot-dependencies`添加到自己的`dependencyManagement`片段，那你必须自己重新定义artifact而不是覆盖属性。
+
+**注**：每个Spring Boot发布都是基于一些特定的第三方依赖集进行设计和测试的，覆盖版本可能导致兼容性问题。
+
+* 使用Maven创建可执行JAR
+
+`spring-boot-maven-plugin`能够用来创建可执行的'胖'JAR。如果你正在使用`spring-boot-starter-parent` POM，你可以简单地声明该插件，然后你的jar将被重新打包：
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+```
+如果没有使用parent POM，你仍旧可以使用该插件。不过，你需要另外添加一个`<executions>`片段：
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>1.3.0.BUILD-SNAPSHOT</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>repackage</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+查看[插件文档](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/maven-plugin/usage.html)获取详细的用例。
+
+* 创建其他的可执行JAR
+
+如果你想将自己的项目以library jar的形式被其他项目依赖，并且需要它是一个可执行版本（例如demo），你需要使用略微不同的方式来配置该构建。
+
+对于Maven来说，正常的JAR插件和Spring Boot插件都有一个'classifier'，你可以添加它来创建另外的JAR。示例如下（使用Spring Boot Starter Parent管理插件版本，其他配置采用默认设置）：
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <classifier>exec</classifier>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+上述配置会产生两个jars，默认的一个和使用带有classifier 'exec'的Boot插件构建的可执行的一个。
+
+对于Gradle用户来说，步骤类似。示例如下：
+```gradle
+bootRepackage  {
+    classifier = 'exec'
+}
+```
+
+* 在可执行jar运行时提取特定的版本
+* 使用排除创建不可执行的JAR
+* 远程调试一个使用Maven启动的Spring Boot项目
+* 远程调试一个使用Gradle启动的Spring Boot项目
+* 使用Ant构建可执行存档（archive）
+* 如何使用Java6
 
