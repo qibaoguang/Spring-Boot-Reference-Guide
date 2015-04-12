@@ -1077,11 +1077,164 @@ bootRepackage  {
     classifier = 'exec'
 }
 ```
-
 * 在可执行jar运行时提取特定的版本
+
+在一个可执行jar中，为了运行，多数内嵌的库不需要拆包（unpacked），然而有一些库可能会遇到问题。例如，JRuby包含它自己的内嵌jar，它假定`jruby-complete.jar`本身总是能够直接作为文件访问的。
+
+为了处理任何有问题的库，你可以标记那些特定的内嵌jars，让它们在可执行jar第一次运行时自动解压到一个临时文件夹中。例如，为了将JRuby标记为使用Maven插件拆包，你需要添加如下的配置：
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <requiresUnpack>
+                    <dependency>
+                        <groupId>org.jruby</groupId>
+                        <artifactId>jruby-complete</artifactId>
+                    </dependency>
+                </requiresUnpack>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+使用Gradle完全上述操作：
+```gradle
+springBoot  {
+    requiresUnpack = ['org.jruby:jruby-complete']
+}
+```
 * 使用排除创建不可执行的JAR
+
+如果你构建的产物既有可执行的jar和非可执行的jar，那你常常需要为可执行的版本添加额外的配置文件，而这些文件在一个library jar中是不需要的。比如，application.yml配置文件可能需要从非可执行的JAR中排除。
+
+下面是如何在Maven中实现：
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <classifier>exec</classifier>
+            </configuration>
+        </plugin>
+        <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>exec</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                    <configuration>
+                        <classifier>exec</classifier>
+                    </configuration>
+                </execution>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                    <configuration>
+                        <!-- Need this to ensure application.yml is excluded -->
+                        <forceCreation>true</forceCreation>
+                        <excludes>
+                            <exclude>application.yml</exclude>
+                        </excludes>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+在Gradle中，你可以使用标准任务的DSL（领域特定语言）特性创建一个新的JAR存档，然后在bootRepackage任务中使用withJarTask属性添加对它的依赖：
+```gradle
+jar {
+    baseName = 'spring-boot-sample-profile'
+    version =  '0.0.0'
+    excludes = ['**/application.yml']
+}
+
+task('execJar', type:Jar, dependsOn: 'jar') {
+    baseName = 'spring-boot-sample-profile'
+    version =  '0.0.0'
+    classifier = 'exec'
+    from sourceSets.main.output
+}
+
+bootRepackage  {
+    withJarTask = tasks['execJar']
+}
+```
 * 远程调试一个使用Maven启动的Spring Boot项目
+
+想要为使用Maven启动的Spring Boot应用添加一个远程调试器，你可以使用[mave插件](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/maven-plugin/)的jvmArguments属性。详情参考[示例](http://docs.spring.io/spring-boot/docs/1.3.0.BUILD-SNAPSHOT/maven-plugin/examples/run-debug.html)。
+
 * 远程调试一个使用Gradle启动的Spring Boot项目
+
+想要为使用Gradle启动的Spring Boot应用添加一个远程调试器，你可以使用build.gradle的applicationDefaultJvmArgs属性或`--debug-jvm`命令行选项。
+
+build.gradle：
+```gradle
+applicationDefaultJvmArgs = [
+    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+]
+```
+命令行：
+```shell
+$ gradle run --debug-jvm
+```
+详情查看[Gradle应用插件](http://www.gradle.org/docs/current/userguide/application_plugin.html)。
+
 * 使用Ant构建可执行存档（archive）
+
+想要使用Ant进行构建，你需要抓取依赖，编译，然后像通常那样创建一个jar或war存档。为了让它可以执行：
+
+1. 使用合适的启动器配置`Main-Class`，比如对于jar文件使用JarLauncher，然后将其他需要的属性以manifest实体指定，主要是一个`Start-Class`。
+2. 将运行时依赖添加到一个内嵌的'lib'目录（对于jar），`provided`（内嵌容器）依赖添加到一个内嵌的`lib-provided`目录。记住***不要***压缩存档中的实体。
+3. 在存档的根目录添加`spring-boot-loader`类（这样`Main-Class`就可用了）。
+
+示例：
+```xml
+<target name="build" depends="compile">
+    <copy todir="target/classes/lib">
+        <fileset dir="lib/runtime" />
+    </copy>
+    <jar destfile="target/spring-boot-sample-actuator-${spring-boot.version}.jar" compress="false">
+        <fileset dir="target/classes" />
+        <fileset dir="src/main/resources" />
+        <zipfileset src="lib/loader/spring-boot-loader-jar-${spring-boot.version}.jar" />
+        <manifest>
+            <attribute name="Main-Class" value="org.springframework.boot.loader.JarLauncher" />
+            <attribute name="Start-Class" value="${start-class}" />
+        </manifest>
+    </jar>
+</target>
+```
+该Actuator示例中有一个build.xml文件，可以使用以下命令来运行：
+```shell
+$ ant -lib <path_to>/ivy-2.2.jar
+```
+在上述操作之后，你可以使用以下命令运行该应用：
+```shell
+$ java -jar target/*.jar
+```
 * 如何使用Java6
 
+如果想在Java6环境中使用Spring Boot，你需要改变一些配置。具体的变化取决于你应用的功能。
+
+- 内嵌Servlet容器兼容性
+
+如果你在使用Boot的内嵌Servlet容器，你需要使用一个兼容Java6的容器。Tomcat 7和Jetty 8都是Java 6兼容的。具体参考[Section 63.15, “Use Tomcat 7”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#howto-use-tomcat-7)和[Section 63.16, “Use Jetty 8”](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#howto-use-jetty-8)。
+
+- JTA API兼容性
+
+Java事务API自身并不要求Java 7，而是官方的API jar包含的已构建类要求Java 7。如果你正在使用JTA，那么你需要使用能够在Java 6工作的构建版本替换官方的JTA 1.2 API jar。为了完成该操作，你需要排除任何对`javax.transaction:javax.transaction-api`的传递依赖，并使用`org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec:1.0.0.Final`依赖替换它们。
+
+
+### 传统部署
