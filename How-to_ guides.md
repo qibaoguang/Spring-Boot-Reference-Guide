@@ -1239,3 +1239,100 @@ Java事务API自身并不要求Java 7，而是官方的API jar包含的已构建
 
 
 ### 传统部署
+
+* 创建一个可部署的war文件
+
+产生一个可部署war包的第一步是提供一个SpringBootServletInitializer子类，并覆盖它的configure方法。这充分利用了Spring框架对Servlet 3.0的支持，并允许你在应用通过servlet容器启动时配置它。通常，你只需把应用的主类改为继承SpringBootServletInitializer即可：
+```java
+@SpringBootApplication
+public class Application extends SpringBootServletInitializer {
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(Application.class);
+    }
+
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(Application.class, args);
+    }
+
+}
+```
+下一步是更新你的构建配置，这样你的项目将产生一个war包而不是jar包。如果你使用Maven，并使用`spring-boot-starter-parent`（为了配置Maven的war插件），所有你需要做的就是更改pom.xml的packaging为war：
+```xml
+<packaging>war</packaging>
+```
+如果你使用Gradle，你需要修改build.gradle来将war插件应用到项目上：
+```gradle
+apply plugin: 'war'
+```
+该过程最后的一步是确保内嵌的servlet容器不能干扰war包将部署的servlet容器。为了达到这个目的，你需要将内嵌容器的依赖标记为provided。
+
+如果使用Maven：
+```xml
+<dependencies>
+    <!-- … -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-tomcat</artifactId>
+        <scope>provided</scope>
+    </dependency>
+    <!-- … -->
+</dependencies>
+```
+如果使用Gradle：
+```gradle
+dependencies {
+    // …
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    // …
+}
+```
+如果你使用[Spring Boot构建工具](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#build-tool-plugins)，将内嵌容器依赖标记为provided将产生一个可执行war包，在`lib-provided`目录有该war包的provided依赖。这意味着，除了部署到servlet容器，你还可以通过使用命令行`java -jar`命令来运行应用。
+
+**注**：查看Spring Boot基于以上配置的一个[Maven示例应用](http://github.com/spring-projects/spring-boot/tree/master/spring-boot-samples/spring-boot-sample-traditional/pom.xml)。
+
+* 为老的servlet容器创建一个可部署的war文件
+
+老的Servlet容器不支持在Servlet 3.0中使用的ServletContextInitializer启动处理。你仍旧可以在这些容器使用Spring和Spring Boot，但你需要为应用添加一个web.xml，并将它配置为通过一个DispatcherServlet加载一个ApplicationContext。
+
+* 将现有的应用转换为Spring Boot
+
+对于一个非web项目，转换为Spring Boot应用很容易（抛弃创建ApplicationContext的代码，取而代之的是调用SpringApplication或SpringApplicationBuilder）。Spring MVC web应用通常先创建一个可部署的war应用，然后将它迁移为一个可执行的war或jar。建议阅读[Getting Started Guide on Converting a jar to a war.](http://spring.io/guides/gs/convert-jar-to-war/)。
+
+通过继承SpringBootServletInitializer创建一个可执行war（比如，在一个名为Application的类中），然后添加Spring Boot的`@EnableAutoConfiguration`注解。示例：
+```java
+@Configuration
+@EnableAutoConfiguration
+@ComponentScan
+public class Application extends SpringBootServletInitializer {
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        // Customize the application or call application.sources(...) to add sources
+        // Since our example is itself a @Configuration class we actually don't
+        // need to override this method.
+        return application;
+    }
+
+}
+```
+记住不管你往sources放什么东西，它仅是一个Spring ApplicationContext，正常情况下，任何生效的在这里也会起作用。有一些beans你可以先移除，然后让Spring Boot提供它的默认实现，不过有可能需要先完成一些事情。
+
+静态资源可以移到classpath根目录下的`/public`（或`/static`，`/resources`，`/META-INF/resources`）。同样的方式也适合于`messages.properties`（Spring Boot在classpath根目录下自动发现这些配置）。
+
+美妙的（Vanilla usage of）Spring DispatcherServlet和Spring Security不需要改变。如果你的应用有其他特性，比如使用其他servlets或filters，那你可能需要添加一些配置到你的Application上下文中，按以下操作替换web.xml的那些元素：
+
+- 在容器中安装一个Servlet或ServletRegistrationBean类型的`@Bean`，就好像web.xml中的`<servlet/>`和`<servlet-mapping/>`。
+- 同样的添加一个Filter或FilterRegistrationBean类型的`@Bean`（类似于`<filter/>`和`<filter-mapping/>`）。
+- 在XML文件中的ApplicationContext可以通过`@Import`添加到你的Application中。简单的情况下，大量使用注解配置可以在几行内定义`@Bean`定义。
+
+
+* 部署WAR到Weblogic
+* 部署WAR到老的(Servlet2.5)容器
+
+
+
+
+
+
