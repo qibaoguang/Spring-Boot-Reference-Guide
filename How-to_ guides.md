@@ -1327,12 +1327,100 @@ public class Application extends SpringBootServletInitializer {
 - 同样的添加一个Filter或FilterRegistrationBean类型的`@Bean`（类似于`<filter/>`和`<filter-mapping/>`）。
 - 在XML文件中的ApplicationContext可以通过`@Import`添加到你的Application中。简单的情况下，大量使用注解配置可以在几行内定义`@Bean`定义。
 
+一旦war可以使用，我们就通过添加一个main方法到Application来让它可以执行，比如：
+```java
+public static void main(String[] args) {
+    SpringApplication.run(Application.class, args);
+}
+```
+应用可以划分为多个类别：
+
+- 没有web.xml的Servlet 3.0+应用
+- 有web.xml的应用
+- 有上下文层次的应用
+- 没有上下文层次的应用
+
+所有这些都可以进行适当的转化，但每个可能需要稍微不同的技巧。
+
+Servlet 3.0+的应用转化的相当简单，如果它们已经使用Spring Servlet 3.0+初始化器辅助类。通常所有来自一个存在的WebApplicationInitializer的代码可以移到一个SpringBootServletInitializer中。如果一个存在的应用有多个ApplicationContext（比如，如果它使用AbstractDispatcherServletInitializer），那你可以将所有上下文源放进一个单一的SpringApplication。你遇到的主要难题可能是如果那样不能工作，那你就要维护上下文层次。参考示例[entry on building a hierarchy](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#howto-build-an-application-context-hierarchy)。一个存在的包含web相关特性的父上下文通常需要分解，这样所有的ServletContextAware组件都处于子上下文中。
+
+对于还不是Spring应用的应用来说，上面的指南有助于你把应用转换为一个Spring Boot应用，但你也可以选择其他方式。
 
 * 部署WAR到Weblogic
+
+想要将Spring Boot应用部署到Weblogic，你需要确保你的servlet初始化器直接实现WebApplicationInitializer（即使你继承的基类已经实现了它）。
+
+一个传统的Weblogic初始化器可能如下所示：
+```java
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.web.SpringBootServletInitializer;
+import org.springframework.web.WebApplicationInitializer;
+
+@SpringBootApplication
+public class MyApplication extends SpringBootServletInitializer implements WebApplicationInitializer {
+
+}
+```
+如果使用logback，你需要告诉Weblogic你倾向使用的打包版本而不是服务器预装的版本。你可以通过添加一个具有如下内容的`WEB-INF/weblogic.xml`实现该操作：
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<wls:weblogic-web-app
+	xmlns:wls="http://xmlns.oracle.com/weblogic/weblogic-web-app"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+		http://java.sun.com/xml/ns/javaee/ejb-jar_3_0.xsd
+		http://xmlns.oracle.com/weblogic/weblogic-web-app
+		http://xmlns.oracle.com/weblogic/weblogic-web-app/1.4/weblogic-web-app.xsd">
+	<wls:container-descriptor>
+		<wls:prefer-application-packages>
+			<wls:package-name>org.slf4j</wls:package-name>
+		</wls:prefer-application-packages>
+	</wls:container-descriptor>
+</wls:weblogic-web-app>
+```
 * 部署WAR到老的(Servlet2.5)容器
 
+Spring Boot使用 Servlet 3.0 APIs初始化ServletContext（注册Servlets等），所以你不能在一个Servlet 2.5的容器中原封不动的使用同样的应用。使用一些特定的工具也是可以在一个老的容器中运行Spring Boot应用的。如果添加了`org.springframework.boot:spring-boot-legacy`依赖，你只需要创建一个web.xml，声明一个用于创建应用上下文的上下文监听器，过滤器和servlets。上下文监听器是专用于Spring Boot的，其他的都是一个Servlet 2.5的Spring应用所具有的。示例：
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>demo.Application</param-value>
+    </context-param>
 
+    <listener>
+        <listener-class>org.springframework.boot.legacy.context.web.SpringBootContextLoaderListener</listener-class>
+    </listener>
 
+    <filter>
+        <filter-name>metricFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
 
+    <filter-mapping>
+        <filter-name>metricFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
+    <servlet>
+        <servlet-name>appServlet</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextAttribute</param-name>
+            <param-value>org.springframework.web.context.WebApplicationContext.ROOT</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>appServlet</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+```
+在该示例中，我们使用一个单一的应用上下文（通过上下文监听器创建的），然后使用一个init参数将它附加到DispatcherServlet。这在一个Spring Boot应用中是很正常的（你通常只有一个应用上下文）。
