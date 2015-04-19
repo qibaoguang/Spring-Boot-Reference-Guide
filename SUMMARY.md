@@ -67,7 +67,34 @@ Summary
    * [20. 打包用于生产的应用程序](III. Using Spring Boot/20. Packaging your application for production.md)
    * [21. 接下来阅读什么](III. Using Spring Boot/21. What to read next.md)
 
-
+* IV. Spring Boot特性
+   * [22. SpringApplication](IV. Spring Boot features/22. SpringApplication.md)
+      * [22.1. 自定义Banner](IV. Spring Boot features/22.1. Customizing the Banner.md)
+      * [22.2. 自定义SpringApplication](IV. Spring Boot features/22.2. Customizing SpringApplication.md)
+      * [22.3. 流畅的构建API](IV. Spring Boot features/22.3. Fluent builder API.md)
+      * [22.4. Application事件和监听器](IV. Spring Boot features/22.4. Application events and listeners.md)
+      * [22.5. Web环境](IV. Spring Boot features/22.5. Web environment.md)
+      * [22.6. 命令行启动器](IV. Spring Boot features/22.6. Using the CommandLineRunner.md)
+      * [22.7. Application退出](IV. Spring Boot features/22.7. Application exit.md)
+   * [23.外化配置](IV. Spring Boot features/23. Externalized Configuration.md)
+      * [23.1. 配置随机值](IV. Spring Boot features/23.1. Configuring random values.md)
+      * [23.2. 访问命令行属性](IV. Spring Boot features/23.2. Accessing command line properties.md)
+      * [23.3. Application属性文件](IV. Spring Boot features/23.3. Application property files.md)
+      * [23.4. 特定的Profile属性](IV. Spring Boot features/23.4. Profile-specific properties.md)
+      * [23.5. 属性占位符](IV. Spring Boot features/23.5. Placeholders in properties.md)
+      * [23.6. 使用YAML代替Properties](IV. Spring Boot features/23.6. Using YAML instead of Properties.md)
+         * [23.6.1. 加载YAML](IV. Spring Boot features/23.6.1. Loading YAML.md)
+         * [23.6.2. 在Spring环境中使用YAML暴露属性](IV. Spring Boot features/23.6.2. Exposing YAML as properties in the Spring Environment.md)
+         * [23.6.3. Multi-profile YAML文档](IV. Spring Boot features/23.6.3. Multi-profile YAML documents.md)
+         * [23.6.4. YAML缺点](IV. Spring Boot features/23.6.4. YAML shortcomings.md)
+      * [23.7. 类型安全的配置属性](IV. Spring Boot features/23.7. Typesafe Configuration Properties.md)
+         * [23.7.1. 第三方配置](IV. Spring Boot features/23.7.1. Third-party configuration.md)
+         * [23.7.2. 松散的绑定（Relaxed binding）](IV. Spring Boot features/23.7.2. Relaxed binding.md)
+         * [23.7.3. @ConfigurationProperties校验](IV. Spring Boot features/23.7.3. @ConfigurationProperties Validation.md)
+   * [24. Profiles](IV. Spring Boot features/24. Profiles.md)
+      * [24.1. 添加激活的配置(profiles)](IV. Spring Boot features/24.1. Adding active profiles.md)
+      * [24.2.以编程方式设置profiles](IV. Spring Boot features/24.2. Programmatically setting profiles.md)
+      * [24.3. Profile特定配置文件](IV. Spring Boot features/24.3. Profile specific configuration files.md)
 
 
 
