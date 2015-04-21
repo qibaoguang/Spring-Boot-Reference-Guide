@@ -177,8 +177,8 @@ Summary
    * [38. 接下来阅读什么](IV. Spring Boot features/38. What to read next.md)
 
 * V. Spring Boot执行器: Production-ready特性
-   * [39. 开启production-ready特性](V. Spring Boot Actuator: Production-ready features/39. Enabling production-ready features.md)
-   * [40. 端点](V. Spring Boot Actuator: Production-ready features/40. Endpoints.md)
+   * [39. 开启production-ready特性](V. Spring Boot Actuator/39. Enabling production-ready features.md)
+   * [40. 端点](V. Spring Boot Actuator/40. Endpoints.md)
       * [40.1. 自定义端点](V. Spring Boot Actuator: Production-ready features/40.1. Customizing endpoints.md)
       * [40.2. 健康信息](V. Spring Boot Actuator: Production-ready features/40.2. Health information.md)
       * [40.3. 安全与HealthIndicators](V. Spring Boot Actuator: Production-ready features/40.3. Security with HealthIndicators.md)
