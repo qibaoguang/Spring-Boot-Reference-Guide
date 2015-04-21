@@ -10,7 +10,7 @@ Email：qibaoguang@gmail.com
 
 QQ : 245637853
 
-[行哇·](V.%20Spring%20Boot%20Actuator:%20Production-ready%20features/40.%20Endpoints.md)
+[行哇·](V. Spring Boot Actuator: Production-ready features/40. Endpoints.md)
 [afsdaf](http://localhost)
 
 
