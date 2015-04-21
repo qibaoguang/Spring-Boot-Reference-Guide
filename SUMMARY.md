@@ -223,6 +223,14 @@ Summary
          * [47.2. 以编程方式](V. Spring Boot Actuator: Production-ready features/47.2. Programmatically.md)
       * [48. 接下来阅读什么](V.%20Spring%20Boot%20Actuator:%20Production-ready%20features/48. What to read next.md`)
 
+* VI. 部署到云端
+   * [49. Cloud Foundry](VI. Deploying to the cloud/49. Cloud Foundry.md)
+      * [49.1. 绑定服务](VI. Deploying to the cloud/49.1. Binding to services.md)
+   * [50. Heroku](VI. Deploying to the cloud/50. Heroku.md)
+   * [51. Openshift](VI. Deploying to the cloud/51. Openshift.md)
+   * [52. Google App Engine](VI. Deploying to the cloud/52. Google App Engine.md)
+   * [53. 接下来阅读什么](VI. Deploying to the cloud/53. What to read next.md)
+
 
 
 
