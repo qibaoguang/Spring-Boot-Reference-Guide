@@ -176,7 +176,7 @@ Summary
    * [37. WebSockets](IV. Spring Boot features/37. WebSockets.md)
    * [38. 接下来阅读什么](IV. Spring Boot features/38. What to read next.md)
 
-* V. Spring Boot执行器：Production-ready特性
+* V. Spring Boot执行器: Production-ready特性
    * [39. 开启production-ready特性](V. Spring Boot Actuator: Production-ready features/39. Enabling production-ready features.md)
    * [40. 端点](V. Spring Boot Actuator: Production-ready features/40. Endpoints.md)
       * [40.1. 自定义端点](V. Spring Boot Actuator: Production-ready features/40.1. Customizing endpoints.md)
