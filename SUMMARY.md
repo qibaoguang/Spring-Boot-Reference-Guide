@@ -180,7 +180,7 @@ Summary
    * [39. 开启production-ready特性](V. Spring Boot Actuator/39. Enabling production-ready features.md)
    * [40. 端点](V. Spring Boot Actuator/40. Endpoints.md)
       * [40.1. 自定义端点](V. Spring Boot Actuator/40.1. Customizing endpoints.md)
-      * [40.2. 健康信息](V. Spring Boot Actuator: Production-ready features/40.2. Health information.md)
+      * [40.2. 健康信息](V. Spring Boot Actuator/40.2. Health information.md)
       * [40.3. 安全与HealthIndicators](V. Spring Boot Actuator/40.3. Security with HealthIndicators.md)
          * [40.3.1. 自动配置的HealthIndicators](V. Spring Boot Actuator/40.3.1. Auto-configured-HealthIndicators.md)
          * [40.3.2. 编写自定义HealthIndicators](V. Spring Boot Actuator/40.3.2. Writing custom HealthIndicators.md)
@@ -231,7 +231,23 @@ Summary
    * [52. Google App Engine](VI. Deploying to the cloud/52. Google App Engine.md)
    * [53. 接下来阅读什么](VI. Deploying to the cloud/53. What to read next.md)
 
-
+* VII. Spring Boot CLI
+   * [54. 安装CLI](VII. Spring Boot CLI/54. Installing the CLI.md)
+   * [55. 使用CLI](VII. Spring Boot CLI/55. Using the CLI.md)
+      * [55.1. 使用CLI运行应用](VII. Spring Boot CLI/55.1. Running applications using the CLI.md)
+         * [55.1.1. 推断"grab"依赖](VII. Spring Boot CLI/55.1.1. Deduced “grab” dependencies.md)
+         * [55.1.2. 推断"grab"坐标](VII. Spring Boot CLI/55.1.2. Deduced “grab” coordinates.md)
+         * [55.1.3. 默认import语句](VII. Spring Boot CLI/55.1.3. Default import statements.md)
+         * [55.1.4. 自动创建main方法](VII. Spring Boot CLI/55.1.4. Automatic main method.md)
+         * [55.1.5. 自定义"grab"元数据](VII. Spring Boot CLI/55.1.5. Custom “grab” metadata.md)
+      * [55.2. 测试你的代码](VII. Spring Boot CLI/55.2. Testing your code.md)
+      * [55.3. 多源文件应用](VII. Spring Boot CLI/55.3. Applications with multiple source files.md)
+      * [55.4. 应用打包](VII. Spring Boot CLI/55.4. Packaging your application.md)
+      * [55.5. 初始化新工程](VII. Spring Boot CLI/55.5. Initialize a new project.md)
+      * [55.6. 使用内嵌shell](VII. Spring Boot CLI/55.6. Using the embedded shell.md)
+      * [55.7. 为CLI添加扩展](VII. Spring Boot CLI/55.7. Adding extensions to the CLI.md)
+   * [56. 使用Groovy beans DSL开发应用](VII. Spring Boot CLI/56. Developing application with the Groovy beans DSL.md)
+   * [57. 接下来阅读什么](VII. Spring Boot CLI/57. What to read next.md)
 
 
 
