@@ -259,8 +259,18 @@ Summary
       * [59.2. 声明不带版本的依赖](VIII. Build tool plugins/59.2. Declaring dependencies without versions.md)
          * [59.2.1. 自定义版本管理](VIII. Build tool plugins/59.2.1. Custom version management.md)
       * [59.3. 默认排除规则](VIII. Build tool plugins/59.3. Default exclude rules.md)
-
-
-
+      * [59.4. 打包可执行jar和war文件](VIII. Build tool plugins/59.4. Packaging executable jar and war files.md)
+      * [59.5. 就地（in-place）运行项目](VIII. Build tool plugins/59.5. Running a project in-place.md)
+      * [59.6. Spring Boot插件配置](VIII. Build tool plugins/59.6. Spring Boot plugin configuration.md)
+      * [59.7. Repackage配置](VIII. Build tool plugins/59.7. Repackage configuration.md)
+      * [59.8. 使用Gradle自定义配置进行Repackage](VIII. Build tool plugins/59.8. Repackage with custom Gradle configuration.md)
+         * [59.8.1. 配置选项](VIII. Build tool plugins/59.8.1. Configuration options.md)
+      * [59.9. 理解Gradle插件是如何工作的](VIII. Build tool plugins/59.9. Understanding how the Gradle plugin works.md)
+   * [60. 对其他构建系统的支持](VIII. Build tool plugins/60. Supporting other build systems.md)
+      * [60.1. 重新打包存档](VIII. Build tool plugins/60.1. Repackaging archives.md)
+      * [60.2. 内嵌的库](VIII. Build tool plugins/60.2. Nested libraries.md)
+      * [60.3. 查找main类](VIII. Build tool plugins/60.3. Finding a main class.md)
+      * [60.4. repackage实现示例](VIII. Build tool plugins/60.4. Example repackage implementation.md)
+   * [61. 接下来阅读什么](VIII. Build tool plugins/61. What to read next.md)
 
 
