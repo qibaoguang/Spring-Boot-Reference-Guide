@@ -1,5 +1,4 @@
-Summary
-===============
+# Summary
 
 * I. Spring Boot文档
     * [1. 关于本文档](I. Spring Boot Documentation/1. About the documentation.md)
@@ -9,7 +8,6 @@ Summary
     * [5. 了解Spring Boot特性](I. Spring Boot Documentation/5. Learning about Spring Boot features.md)
     * [6. 迁移到生存环境](I. Spring Boot Documentation/6. Moving to production.md)
     * [7. 高级主题](I. Spring Boot Documentation/7. Advanced topics.md)
-
 * II. 开始
     * [8. Spring Boot介绍](II. Getting started/8. Introducing Spring Boot.md)
     * [9. 系统要求](II. Getting started/9. System Requirements.md)
@@ -36,7 +34,6 @@ Summary
       * [11.4. 运行示例](II. Getting started/11.4. Running the example.md)
       * [11.5. 创建一个可执行jar](II. Getting started/11.5. Creating an executable jar.md)
    * [12. 接下来阅读什么](II. Getting started/12. What to read next.md)
-    
 * III. 使用Spring Boot
    * [13. 构建系统](III. Using Spring Boot/13. Build systems.md)
       * [13.1. Maven](III. Using Spring Boot/13.1. Maven.md)
@@ -66,7 +63,6 @@ Summary
       * [19.5. 热交换](III. Using Spring Boot/19.5. Hot swapping.md)
    * [20. 打包用于生产的应用程序](III. Using Spring Boot/20. Packaging your application for production.md)
    * [21. 接下来阅读什么](III. Using Spring Boot/21. What to read next.md)
-
 * IV. Spring Boot特性
    * [22. SpringApplication](IV. Spring Boot features/22. SpringApplication.md)
       * [22.1. 自定义Banner](IV. Spring Boot features/22.1. Customizing the Banner.md)
@@ -175,7 +171,6 @@ Summary
       * [36.3.6. SpEL表达式条件](IV. Spring Boot features/36.3.6. SpEL expression conditions.md)
    * [37. WebSockets](IV. Spring Boot features/37. WebSockets.md)
    * [38. 接下来阅读什么](IV. Spring Boot features/38. What to read next.md)
-
 * V. Spring Boot执行器: Production-ready特性
    * [39. 开启production-ready特性](V. Spring Boot Actuator/39. Enabling production-ready features.md)
    * [40. 端点](V. Spring Boot Actuator/40. Endpoints.md)
@@ -222,7 +217,6 @@ Summary
          * [47.1. 扩展属性](V. Spring Boot Actuator/47.1. Extend configuration.md)
          * [47.2. 以编程方式](V. Spring Boot Actuator/47.2. Programmatically.md)
       * [48. 接下来阅读什么](V. Spring Boot Actuator/48. What to read next.md`)
-
 * VI. 部署到云端
    * [49. Cloud Foundry](VI. Deploying to the cloud/49. Cloud Foundry.md)
       * [49.1. 绑定服务](VI. Deploying to the cloud/49.1. Binding to services.md)
@@ -230,7 +224,6 @@ Summary
    * [51. Openshift](VI. Deploying to the cloud/51. Openshift.md)
    * [52. Google App Engine](VI. Deploying to the cloud/52. Google App Engine.md)
    * [53. 接下来阅读什么](VI. Deploying to the cloud/53. What to read next.md)
-
 * VII. Spring Boot CLI
    * [54. 安装CLI](VII. Spring Boot CLI/54. Installing the CLI.md)
    * [55. 使用CLI](VII. Spring Boot CLI/55. Using the CLI.md)
@@ -248,8 +241,6 @@ Summary
       * [55.7. 为CLI添加扩展](VII. Spring Boot CLI/55.7. Adding extensions to the CLI.md)
    * [56. 使用Groovy beans DSL开发应用](VII. Spring Boot CLI/56. Developing application with the Groovy beans DSL.md)
    * [57. 接下来阅读什么](VII. Spring Boot CLI/57. What to read next.md)
-
-
 * VIII. 构建工具插件
    * [58. Spring Boot Maven插件](VIII. Build tool plugins/58. Spring Boot Maven plugin.md)
       * [58.1. 包含该插件](VIII. Build tool plugins/58.1. Including the plugin.md)
@@ -259,8 +250,3 @@ Summary
       * [59.2. 声明不带版本的依赖](VIII. Build tool plugins/59.2. Declaring dependencies without versions.md)
          * [59.2.1. 自定义版本管理](VIII. Build tool plugins/59.2.1. Custom version management.md)
       * [59.3. 默认排除规则](VIII. Build tool plugins/59.3. Default exclude rules.md)
-
-
-
-
-
