@@ -34,7 +34,7 @@
       * [11.4. 运行示例](II. Getting started/11.4. Running the example.md)
       * [11.5. 创建一个可执行jar](II. Getting started/11.5. Creating an executable jar.md)
    * [12. 接下来阅读什么](II. Getting started/12. What to read next.md)
-* III. 使用Spring Boot
+* [III. 使用Spring Boot](III. Using Spring Boot/README.md)
    * [13. 构建系统](III. Using Spring Boot/13. Build systems.md)
       * [13.1. Maven](III. Using Spring Boot/13.1. Maven.md)
          * [13.1.1. 继承starter parent](III. Using Spring Boot/13.1.1. Inheriting the starter parent.md)
@@ -171,7 +171,7 @@
       * [36.3.6. SpEL表达式条件](IV. Spring Boot features/36.3.6. SpEL expression conditions.md)
    * [37. WebSockets](IV. Spring Boot features/37. WebSockets.md)
    * [38. 接下来阅读什么](IV. Spring Boot features/38. What to read next.md)
-* V. Spring Boot执行器: Production-ready特性
+* [V. Spring Boot执行器: Production-ready特性](V. Spring Boot Actuator/README.md)
    * [39. 开启production-ready特性](V. Spring Boot Actuator/39. Enabling production-ready features.md)
    * [40. 端点](V. Spring Boot Actuator/40. Endpoints.md)
       * [40.1. 自定义端点](V. Spring Boot Actuator/40.1. Customizing endpoints.md)
@@ -217,14 +217,14 @@
          * [47.1. 扩展属性](V. Spring Boot Actuator/47.1. Extend configuration.md)
          * [47.2. 以编程方式](V. Spring Boot Actuator/47.2. Programmatically.md)
       * [48. 接下来阅读什么](V. Spring Boot Actuator/48. What to read next.md`)
-* VI. 部署到云端
+* [VI. 部署到云端](VI. Deploying to the cloud/README.md)
    * [49. Cloud Foundry](VI. Deploying to the cloud/49. Cloud Foundry.md)
       * [49.1. 绑定服务](VI. Deploying to the cloud/49.1. Binding to services.md)
    * [50. Heroku](VI. Deploying to the cloud/50. Heroku.md)
    * [51. Openshift](VI. Deploying to the cloud/51. Openshift.md)
    * [52. Google App Engine](VI. Deploying to the cloud/52. Google App Engine.md)
    * [53. 接下来阅读什么](VI. Deploying to the cloud/53. What to read next.md)
-* VII. Spring Boot CLI
+* [VII. Spring Boot CLI](VII. Spring Boot CLI/README.md)
    * [54. 安装CLI](VII. Spring Boot CLI/54. Installing the CLI.md)
    * [55. 使用CLI](VII. Spring Boot CLI/55. Using the CLI.md)
       * [55.1. 使用CLI运行应用](VII. Spring Boot CLI/55.1. Running applications using the CLI.md)
@@ -241,7 +241,7 @@
       * [55.7. 为CLI添加扩展](VII. Spring Boot CLI/55.7. Adding extensions to the CLI.md)
    * [56. 使用Groovy beans DSL开发应用](VII. Spring Boot CLI/56. Developing application with the Groovy beans DSL.md)
    * [57. 接下来阅读什么](VII. Spring Boot CLI/57. What to read next.md)
-* VIII. 构建工具插件
+* [VIII. 构建工具插件](VIII. Build tool plugins/README.md)
    * [58. Spring Boot Maven插件](VIII. Build tool plugins/58. Spring Boot Maven plugin.md)
       * [58.1. 包含该插件](VIII. Build tool plugins/58.1. Including the plugin.md)
       * [58.2. 打包可执行jar和war文件](VIII. Build tool plugins/58.2. Packaging executable jar and war files.md)
@@ -263,7 +263,7 @@
       * [60.3. 查找main类](VIII. Build tool plugins/60.3. Finding a main class.md)
       * [60.4. repackage实现示例](VIII. Build tool plugins/60.4. Example repackage implementation.md)
    * [61. 接下来阅读什么](VIII. Build tool plugins/61. What to read next.md)
-* IX. How-to指南
+* [IX. How-to指南](IX. ‘How-to’ guides/README.md)
    * [62. Spring Boot应用](IX. ‘How-to’ guides/62. Spring Boot application.md)
       * [62.1. 解决自动配置问题](IX. ‘How-to’ guides/62.1. Troubleshoot auto-configuration.md)
       * [62.2. 启动前自定义Environment或ApplicationContext](IX. ‘How-to’ guides/62.2. Customize the Environment or ApplicationContext before it starts.md)
