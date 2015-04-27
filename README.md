@@ -10,7 +10,4 @@ Email：qibaoguang@gmail.com
 
 Github：[https://github.com/qibaoguang/](https://github.com/qibaoguang/)
 
-QQ : 245637853
-
-
-
+GitBook : [Spring Boot参考指南](https://www.gitbook.com/book/qbgbook/spring-boot-reference-guide-zh/details)
