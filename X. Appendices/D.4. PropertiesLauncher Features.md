@@ -1,4 +1,4 @@
-### D.4. PropertiesLauncher特性
+### 附录D.4. PropertiesLauncher特性
 
 PropertiesLauncher有一些特殊的性质，它们可以通过外部属性来启用（系统属性，环境变量，manifest实体或application.properties）。
 
