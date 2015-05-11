@@ -1,4 +1,4 @@
-### 附录B.2 使用注解处理器产生自己的元数据
+### 附录B.2. 使用注解处理器产生自己的元数据
 
 通过使用`spring-boot-configuration-processor` jar， 你可以从被`@ConfigurationProperties`注解的节点轻松的产生自己的配置元数据文件。该jar包含一个在你的项目编译时会被调用的Java注解处理器。想要使用该处理器，你只需简单添加`spring-boot-configuration-processor`依赖，例如使用Maven你需要添加：
 ```xml
