@@ -1,4 +1,4 @@
-### B.1.2. Property属性
+### 附录B.1.2. Property属性
 
 `properties`数组中包含的JSON对象可由以下属性构成：
 
