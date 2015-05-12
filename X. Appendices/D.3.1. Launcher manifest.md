@@ -1,4 +1,4 @@
-### D.3.1 Launcher manifest
+### 附录D.3.1 Launcher manifest
 
 你需要指定一个合适的Launcher作为`META-INF/MANIFEST.MF`的`Main-Class`属性。你实际想要启动的类（也就是你编写的包含main方法的类）需要在`Start-Class`属性中定义。
 
