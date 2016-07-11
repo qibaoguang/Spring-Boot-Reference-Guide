@@ -13,4 +13,4 @@ Email：qibaoguang@gmail.com
 
 [从这里开始](SUMMARY.md)
 
-更新开始啦，召集小伙伴了，有兴趣加QQ：245637853
+更新开始啦，召集小伙伴了，有兴趣的进SpringBoot QQ交流群：445015546
