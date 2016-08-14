@@ -1,0 +1,43 @@
+### 13.2.2. 在不使用parent POM的情况下玩转Spring Boot
+
+不是每个人都喜欢继承`spring-boot-starter-parent` POM，比如你可能需要使用公司的标准parent，或只是倾向于显式声明所有的Maven配置。
+
+如果你不想使用`spring-boot-starter-parent`，通过设置`scope=import`的依赖，你仍能获取到依赖管理的好处：
+```xml
+<dependencyManagement>
+     <dependencies>
+        <dependency>
+            <!-- Import dependency management from Spring Boot -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>1.4.1.BUILD-SNAPSHOT</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+以上设置不允许你使用属性覆盖个别依赖，为了达到这个目的，你需要在项目的`dependencyManagement`节点中，在`spring-boot-dependencies`实体前插入一个节点。例如，为了将Spring Data升级到另一个发布版本，你需要将以下配置添加到`pom.xml`中：
+```xml
+<dependencyManagement>
+    <dependencies>
+        <!-- Override Spring Data release train provided by Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-releasetrain</artifactId>
+            <version>Fowler-SR2</version>
+            <scope>import</scope>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>1.4.1.BUILD-SNAPSHOT</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+**注** 示例中，我们指定了一个BOM，但任何的依赖类型都可以通过这种方式覆盖。
