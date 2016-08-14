@@ -1,0 +1,21 @@
+### 13.2.1. 继承starter parent
+
+如果你想配置项目，让其继承自`spring-boot-starter-parent`，只需将`parent`按如下设置：
+```xml
+<!-- Inherit defaults from Spring Boot -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>1.4.1.BUILD-SNAPSHOT</version>
+</parent>
+```
+**注**：你应该只需在该依赖上指定Spring Boot版本，如果导入其他的starters，放心的省略版本号好了。
+
+按照以上设置，你可以在自己的项目中通过覆盖属性来覆盖个别的依赖。例如，你可以将以下设置添加到`pom.xml`中来升级Spring Data到另一个发布版本。
+```xml
+<properties>
+    <spring-data-releasetrain.version>Fowler-SR2</spring-data-releasetrain.version>
+</properties>
+```
+
+**注** 查看[spring-boot-dependencies pom](https://github.com/spring-projects/spring-boot/tree/master/spring-boot-dependencies/pom.xml)获取支持的属性列表。
