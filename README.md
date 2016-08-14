@@ -14,3 +14,5 @@ Email：qibaoguang@gmail.com
 [从这里开始](SUMMARY.md)
 
 更新开始啦，召集小伙伴了，有兴趣的进Spring Boot QQ交流群：445015546
+
+**注** 目前新版本正在翻译中，所以可能导航之类的有错位现象，望大家谅解，如果影响阅读可以查看1.3.x版本（release版）。
