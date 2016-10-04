@@ -1,7 +1,7 @@
 # Spring-Boot-Reference-Guide
 Spring Boot Reference Guide中文翻译 -《Spring Boot参考指南》
 
-说明：本文档翻译的版本：[1.4.1.RELEASE](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle)。
+说明：本文档翻译的版本：[1.4.1.RELEASE](http://docs.spring.io/spring-boot/docs/1.4.1.RELEASE/reference/htmlsingle/)。
 
 最新版本地址：[2.x](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle)。
 
