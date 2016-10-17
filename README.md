@@ -11,6 +11,8 @@ Github：[https://github.com/qibaoguang/](https://github.com/qibaoguang/)
 
 GitBook : [Spring Boot参考指南](https://www.gitbook.com/book/qbgbook/spring-boot-reference-guide-zh/details)
 
+整合示例：[程序猿DD-Spring Boot教程](http://git.oschina.net/didispace/SpringBoot-Learning)
+
 Email：qibaoguang@gmail.com
 
 [从这里开始](SUMMARY.md)
