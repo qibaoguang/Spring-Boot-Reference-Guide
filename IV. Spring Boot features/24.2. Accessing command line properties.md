@@ -1,0 +1,5 @@
+### 24.2. 访问命令行属性
+
+默认情况下，`SpringApplication`会将所有命令行配置参数（以'--'开头，比如`--server.port=9000`）转化成一个`property`，并将其添加到Spring `Environment`中。正如以上章节提过的，命令行属性总是优先于其他属性源。
+
+如果不想将命令行属性添加到`Environment`，你可以使用`SpringApplication.setAddCommandLineProperties(false)`来禁用它们。
