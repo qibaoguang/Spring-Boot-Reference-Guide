@@ -1,0 +1,12 @@
+### 23.4. 流式构建API
+
+如果需要创建一个分层的`ApplicationContext`（多个具有父子关系的上下文），或只是喜欢使用流式（fluent）构建API，那你可以使用SpringApplicationBuilder。
+SpringApplicationBuilder允许你以链式方式调用多个方法，包括parent和child方法，这样就可以创建多层次结构，例如：
+```java
+new SpringApplicationBuilder()
+        .sources(Parent.class)
+        .child(Application.class)
+        .bannerMode(Banner.Mode.OFF)
+        .run(args);
+```
+**注**：创建ApplicationContext层次时有些限制，比如，Web组件必须包含在子上下文中，并且父上下文和子上下文使用相同的Environment，具体参考[SpringApplicationBuilder javadoc](http://docs.spring.io/spring-boot/docs/1.4.1.RELEASE/api/org/springframework/boot/builder/SpringApplicationBuilder.html)。
