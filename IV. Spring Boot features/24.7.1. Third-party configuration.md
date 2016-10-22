@@ -1,0 +1,13 @@
+### 24.7.1. 第三方配置
+
+`@ConfigurationProperties`不仅可以注解在类上，也可以注解在public `@Bean`方法上，当你需要为不受控的第三方组件绑定属性时，该方法将非常有用。
+
+为了从`Environment`属性中配置一个bean，你需要使用`@ConfigurationProperties`注解该bean：
+```java
+@ConfigurationProperties(prefix = "foo")
+@Bean
+public FooComponent fooComponent() {
+    ...
+}
+```
+和上面`ConnectionSettings`的示例方式相同，所有以`foo`为前缀的属性定义都会被映射到`FooComponent`上。
