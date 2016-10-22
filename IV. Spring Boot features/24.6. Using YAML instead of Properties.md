@@ -1,0 +1,5 @@
+### 24.6. 使用YAML代替Properties
+
+[YAML](http://yaml.org/)是JSON的一个超集，也是一种方便的定义层次配置数据的格式。只要你将[SnakeYAML ](http://code.google.com/p/snakeyaml/)库放到classpath下，`SpringApplication`就会自动支持YAML，以作为properties的替换。
+
+**注** 如果你使用'Starters'，添加`spring-boot-starter`依赖会自动加载SnakeYAML。
