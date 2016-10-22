@@ -1,0 +1,3 @@
+### 24.6.2. 在Spring环境中使用YAML暴露属性
+
+`YamlPropertySourceLoader`类能够将YAML作为`PropertySource`导出到Sprig `Environment`，这允许你使用常用的`@Value`注解配合占位符语法访问YAML属性。
