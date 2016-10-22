@@ -1,0 +1,39 @@
+### 24.6.3. Multi-profile YAML文档
+
+你可以在单个文件中定义多个特定配置（profile-specific）的YAML文档，并通过`spring.profiles`标示生效的文档，例如：
+```json
+server:
+    address: 192.168.1.100
+---
+spring:
+    profiles: development
+server:
+    address: 127.0.0.1
+---
+spring:
+    profiles: production
+server:
+    address: 192.168.1.120
+```
+在以上例子中，如果`development` profile被激活，`server.address`属性将是`127.0.0.1`；如果`development`和`production` profiles没有启用，则该属性的值将是`192.168.1.100`。
+
+在应用上下文启动时，如果没有明确指定激活的profiles，则默认的profiles将生效。所以，在下面的文档中我们为`security.user.password`设置了一个值，该值只在"default" profile中有效：
+```properties
+server:
+  port: 8000
+---
+spring:
+  profiles: default
+security:
+  user:
+    password: weak
+```
+然而，在这个示例中，由于没有关联任何profile，密码总是会设置，并且如果有必要的话可以在其他profiles中显式重置：
+```properties
+server:
+  port: 8000
+security:
+  user:
+    password: weak
+```
+通过`!`可以对`spring.profiles`指定的profiles进行取反（negated，跟java中的`!`作用一样），如果negated和non-negated profiles都指定一个单一文件，至少需要匹配一个non-negated profile，可能不会匹配任何negated profiles。
