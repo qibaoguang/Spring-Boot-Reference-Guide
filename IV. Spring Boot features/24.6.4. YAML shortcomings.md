@@ -1,0 +1,3 @@
+### 24.6.4. YAML缺点
+
+YAML文件不能通过`@PropertySource`注解加载，如果需要使用该方式，那就必须使用properties文件。
