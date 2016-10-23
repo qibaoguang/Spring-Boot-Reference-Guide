@@ -1,0 +1,19 @@
+### 25. Profiles
+Spring Profiles提供了一种隔离应用程序配置的方式，并让这些配置只在特定的环境下生效。任何`@Component`或`@Configuration`都能注解`@Profile`，从而限制加载它的时机：
+```java
+@Configuration
+@Profile("production")
+public class ProductionConfiguration {
+
+    // ...
+
+}
+```
+以正常的Spring方式，你可以使用`spring.profiles.active`的`Environment`属性来指定哪个配置生效。你可以使用通常的任何方式来指定该属性，例如，可以将它包含到`application.properties`中：
+```java
+spring.profiles.active=dev,hsqldb
+```
+或使用命令行开关：
+```shell
+--spring.profiles.active=dev,hsqldb
+```
