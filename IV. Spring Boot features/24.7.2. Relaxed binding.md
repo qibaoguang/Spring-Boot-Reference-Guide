@@ -1,0 +1,29 @@
+### 24.7.2. Relaxed绑定
+
+Spring Boot将`Environment`属性绑定到`@ConfigurationProperties` beans时会使用一些宽松的规则，所以`Environment`属性名和bean属性名不需要精确匹配。常见的示例中有用的包括虚线分割（比如，`context-path`绑定到`contextPath`），将environment属性转为大写字母（比如，`PORT`绑定`port`）。
+
+例如，给定以下`@ConfigurationProperties`类：
+```java
+@ConfigurationProperties(prefix="person")
+public class OwnerProperties {
+
+    private String firstName;
+
+    public String getFirstName() {
+        return this.firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+}
+```
+下面的属性名都能使用：
+
+| 属性        | 说明   |
+| --------    | :----- |
+|`person.firstName`|标准驼峰规则|
+|`person.first-name`|虚线表示，推荐用于`.properties`和`.yml`文件中|
+|`person.first_name`|下划线表示，用于`.properties`和`.yml`文件的可选格式|
+|`PERSON_FIRST_NAME`|大写形式，使用系统环境变量时推荐|
