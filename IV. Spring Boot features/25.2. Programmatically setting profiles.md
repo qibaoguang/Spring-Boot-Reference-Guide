@@ -1,0 +1,3 @@
+### 25.2.以编程方式设置profiles
+
+在应用运行前，你可以通过调用`SpringApplication.setAdditionalProfiles(…)`方法，以编程的方式设置激活的配置，也可以使用Spring的`ConfigurableEnvironment`接口激活配置（profiles）。
