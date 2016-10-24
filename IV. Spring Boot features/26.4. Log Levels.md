@@ -1,0 +1,11 @@
+### 26.4. 日志级别
+
+所有Spring Boot支持的日志系统都可以在Spring `Environment`中设置级别（`application.properties`里也一样），设置格式为'logging.level.*=LEVEL'，其中`LEVEL`是`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`, `OFF`之一：
+
+以下是`application.properties`示例：
+```properties
+logging.level.root=WARN
+logging.level.org.springframework.web=DEBUG
+logging.level.org.hibernate=ERROR
+```
+**注** 默认情况，Spring Boot会重新映射Thymeleaf的`INFO`信息到`DEBUG`级别，这能减少标准日志输出的噪声。查看[LevelRemappingAppender](https://github.com/spring-projects/spring-boot/tree/v1.4.1.RELEASE/spring-boot/src/main/java/org/springframework/boot/logging/logback/LevelRemappingAppender.java)可以按自己的配置设置映射。
