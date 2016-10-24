@@ -1,0 +1,13 @@
+### 26.3. 文件输出
+
+默认情况下，Spring Boot只会将日志记录到控制台，而不写进日志文件，如果需要，你可以设置`logging.file`或`logging.path`属性（例如`application.properties`）。
+
+下表展示如何组合使用`logging.*`：
+
+|logging.file|logging.path| 示例 | 描述  |
+| --------   | :-----  | :-----  | :-----|
+|  (none)    | (none)  |         | 只记录到控制台 |
+|Specific file|(none)|my.log|写到特定的日志文件，名称可以是精确的位置或相对于当前目录|
+|(none)|Specific directory|/var/log|写到特定目录下的`spring.log`里，名称可以是精确的位置或相对于当前目录|
+
+日志文件每达到10M就会被分割，跟控制台一样，默认记录`ERROR`, `WARN`和`INFO`级别的信息。
