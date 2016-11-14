@@ -2,6 +2,7 @@
 Spring Boot Reference Guide中文翻译 -《Spring Boot参考指南》
 
 说明：本文档翻译的版本：[1.4.1.RELEASE](http://docs.spring.io/spring-boot/docs/1.4.1.RELEASE/reference/htmlsingle/)。
+翻译完毕会出教程，敬请期待！
 
 最新版本地址：[2.x](http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle)。
 
@@ -17,6 +18,8 @@ Email：qibaoguang@gmail.com
 
 [从这里开始](SUMMARY.md)
 
-更新开始啦，召集小伙伴了，有兴趣的进Spring Boot QQ交流群：445015546
+交流群：
+spring boot最佳实践（已满） ：445015546
+spring boot最佳实践2 ： 460560346
 
 **注** 1.3版本查看本仓库的release。
