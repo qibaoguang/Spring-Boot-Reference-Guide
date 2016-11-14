@@ -19,8 +19,7 @@ Email：qibaoguang@gmail.com
 [从这里开始](SUMMARY.md)
 
 交流群：
-
-1. spring boot最佳实践（已满） ：445015546
-2. spring boot最佳实践2 ： 460560346
+* spring boot最佳实践（已满） ：445015546
+* spring boot最佳实践2 ： 460560346
 
 **注** 1.3版本查看本仓库的release。
