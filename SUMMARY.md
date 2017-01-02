@@ -490,7 +490,7 @@
    * [79. 热交换](IX. ‘How-to’ guides/79. Hot swapping.md)
       * [79.1 重新加载静态内容](IX. ‘How-to’ guides/79.1 Reload static content.md)
       * [79.2. 在不重启容器的情况下重新加载模板](IX. ‘How-to’ guides/79.2. Reload templates without restarting the container.md)
-         * [79.2.1 Thymeleaf模板](IX. ‘How-to’ guides/79.2.1 Thymeleaf templates.md)
+         * [79.2.1 Thymeleaf模板](IX. ‘How-to’ guides/79.2.1 Thymeleaf templates.md)
          * [79.2.2 FreeMarker模板](IX. ‘How-to’ guides/79.2.2 FreeMarker templates.md)
          * [79.2.3 Groovy模板](IX. ‘How-to’ guides/79.2.3 Groovy templates.md)
          * [79.2.4 Velocity模板](IX. ‘How-to’ guides/79.2.4 Velocity templates.md)
